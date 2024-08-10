@@ -41,7 +41,7 @@ export const Form = ({
                 <input
                   name="title"
                   id="title"
-                  className={`w-full p-2 text-primary bg-transparent rounded-md text-2xl md:text-4xl font-bold focus-visible:outline-none ${
+                  className={`w-full p-2 text-primary bg-transparent rounded-md text-2xl md:text-4xl  md:leading-[1.5] font-bold focus-visible:outline-none ${
                     errors.title === true && "border-input"
                   } ${
                     errors.title !== true &&
