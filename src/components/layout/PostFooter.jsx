@@ -4,8 +4,6 @@ import { Link } from "react-router-dom";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../utils/firebase";
 import { AuthContext } from "../../context/AuthContext";
-import { PostsContext } from "../../context/PostsContext";
-import { debounce } from "../../utils/debounce";
 import {
   RiBookmarkFill,
   RiBookmarkLine,
@@ -24,9 +22,9 @@ import {
   AlertDialogTitle,
 } from "../ui/alert-dialog";
 import { GoogleIcon } from "../shared/GoogleIcon";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const PostFooter = ({ post, comments }) => {
-  const { dispatch } = useContext(PostsContext);
   const { currentUser, updateUser, signIn } = useContext(AuthContext);
   const isBookmarked = currentUser?.bookmarks?.includes(post.id);
   const { authorImage, authorName, authorId, createdAt } = post;
@@ -35,9 +33,33 @@ export const PostFooter = ({ post, comments }) => {
   const [loading, setLoading] = useState(false);
 
   /**
+   * Refresh the query cache
+   */
+  const queryClient = useQueryClient();
+  const refreshCache = () => {
+    queryClient.invalidateQueries(["bookmarksCount", post.id]);
+  };
+
+  /**
+   * Custom Hook to fetch bookmarks count
+   */
+  const useFetchBookmarksCount = () => {
+    return useQuery({
+      queryKey: ["bookmarksCount", post.id],
+      queryFn: async () => {
+        const postRef = doc(db, "posts", post.id);
+        const postSnap = await getDoc(postRef);
+        return postSnap.data().bookmarksCount;
+      },
+    });
+  };
+  // destructure the data from the custom hook
+  const { data: bookmarksCountData } = useFetchBookmarksCount();
+
+  /**
    * Handle Add Bookmark
    */
-  const handleAddBookmark = debounce((post) => {
+  const handleAddBookmark = (post) => {
     // if the user is not signed in, return
     if (!currentUser || isGuest) {
       setBookmarkAlert(true);
@@ -68,17 +90,14 @@ export const PostFooter = ({ post, comments }) => {
             ? userSnap.data().bookmarks
             : [...userSnap.data().bookmarks, post.id],
         });
-        // update the post reducer
-        dispatch({
-          type: "EDIT_POST",
-          payload: { ...post, bookmarksCount: post.bookmarksCount + 1 },
-        });
         // update the currentUser reducer
         updateUser({
           bookmarks: userSnap.data().bookmarks.includes(post.id)
             ? userSnap.data().bookmarks
             : [...userSnap.data().bookmarks, post.id],
         });
+        // refresh the cache
+        refreshCache();
       } catch (error) {
         console.log(error);
       } finally {
@@ -86,12 +105,12 @@ export const PostFooter = ({ post, comments }) => {
       }
     };
     addBookmark(post);
-  }, 300);
+  };
 
   /**
    * Handle Remove Bookmark
    */
-  const handleRemoveBookmark = debounce((post) => {
+  const handleRemoveBookmark = (post) => {
     const removeBookmark = async (post) => {
       try {
         setLoading(true);
@@ -108,15 +127,12 @@ export const PostFooter = ({ post, comments }) => {
         await updateDoc(userRef, {
           bookmarks: userSnap.data().bookmarks.filter((id) => id !== post.id),
         });
-        // update post reducer
-        dispatch({
-          type: "EDIT_POST",
-          payload: { ...post, bookmarksCount: post.bookmarksCount - 1 },
-        });
         // update currentUser reducer
         updateUser({
           bookmarks: userSnap.data().bookmarks.filter((id) => id !== post.id),
         });
+        // refresh the cache
+        refreshCache();
       } catch (error) {
         console.log(error);
       } finally {
@@ -124,7 +140,7 @@ export const PostFooter = ({ post, comments }) => {
       }
     };
     removeBookmark(post);
-  }, 300);
+  };
 
   /**
    * Handle Sign In With Google
@@ -187,7 +203,7 @@ export const PostFooter = ({ post, comments }) => {
           )}
           {/* Bookmarks count */}
           <p className="text-primary">
-            {post.bookmarksCount > 0 && post.bookmarksCount}
+            {bookmarksCountData > 0 && bookmarksCountData}
           </p>
         </div>
         {/* comments */}
