@@ -1,8 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState, useContext, useRef, useMemo } from "react";
-import { useParams } from "react-router-dom";
-import { PostsContext } from "../../context/PostsContext";
-import { CommentsContext } from "../../context/CommentsContext";
+import { useState, useContext, useRef } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import {
   collection,
@@ -16,18 +13,22 @@ import {
 import { db } from "../../utils/firebase";
 import { CommentForm } from "./CommentForm";
 import { CommentList } from "./CommentList";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Comments = ({ post }) => {
-  const { posts, dispatch } = useContext(PostsContext);
-  const { CommentsDispatch } = useContext(CommentsContext);
   const { currentUser } = useContext(AuthContext);
-  const { id } = useParams();
-  const currentPost = posts.find((post) => post.id === id) || {};
   const [comment, setComment] = useState("");
   const [commentToEdit, setCommentToEdit] = useState(null);
   const [error, setError] = useState(null);
   const formRef = useRef(null);
 
+  /**
+   * Refetch the comments after adding/editing a new comment
+   */
+  const queryClient = useQueryClient();
+  const refetchComments = () => {
+    queryClient.invalidateQueries(["comments"]);
+  };
   /**
    * Handle Change Comment
    */
@@ -65,20 +66,13 @@ export const Comments = ({ post }) => {
           createdAt: serverTimestamp(),
         };
         await setDoc(commentRef, commentData);
-        CommentsDispatch({ type: "ADD_COMMENT", payload: commentData });
         // update posts comments count
         const postRef = doc(db, "posts", post?.id);
         await updateDoc(postRef, {
-          commentsCount: currentPost.commentsCount + 1,
+          commentsCount: post.commentsCount + 1,
         });
-        // update the post reducer
-        dispatch({
-          type: "EDIT_POST",
-          payload: {
-            ...currentPost,
-            commentsCount: currentPost.commentsCount + 1,
-          },
-        });
+        // refetch the comments
+        refetchComments();
         if (!commentData) throw new Error("Error writing comment");
       } catch (error) {
         setError(error.message);
@@ -93,7 +87,6 @@ export const Comments = ({ post }) => {
    */
   const handleEditComment = (e) => {
     e.preventDefault();
-    console.log(commentToEdit);
     // validate comment
     if (!comment) {
       setError("Comment is required");
@@ -122,7 +115,8 @@ export const Comments = ({ post }) => {
           createdAt: serverTimestamp(),
         };
         await updateDoc(commentRef, commentData);
-        CommentsDispatch({ type: "EDIT_COMMENT", payload: commentData });
+        // refetch the comments
+        refetchComments();
         if (!commentData) throw new Error("Error writing comment");
       } catch (error) {
         setError(error.message);
@@ -156,6 +150,8 @@ export const Comments = ({ post }) => {
         top: offsetPosition,
         behavior: "smooth",
       });
+    } else {
+      console.log("Form Ref is null");
     }
   };
 
@@ -184,37 +180,18 @@ export const Comments = ({ post }) => {
         setError(null);
         await deleteDoc(commentRef);
         const postSnap = await getDoc(postRef);
-        CommentsDispatch({ type: "DELETE_COMMENT", payload: comment.id });
         // update posts comments count
         await updateDoc(postRef, {
           commentsCount: postSnap.data().commentsCount - 1,
         });
-        // update the post reducer
-        dispatch({
-          type: "EDIT_POST",
-          payload: {
-            ...currentPost,
-            commentsCount: postSnap.data().commentsCount - 1,
-          },
-        });
+        // refetch the comments
+        refetchComments();
       } catch (error) {
         setError(error.message);
       }
     };
     deleteComment();
   };
-
-  // memoize the comment list component to prevent re-rendering
-  const memoizedList = useMemo(
-    () => (
-      <CommentList
-        post={post}
-        commentToEdit={handleToEdit}
-        handleDelete={handleDeleteComment}
-      />
-    ),
-    [post]
-  );
 
   return (
     <>
@@ -227,7 +204,11 @@ export const Comments = ({ post }) => {
         error={error}
         formRef={formRef}
       />
-      {memoizedList}
+      <CommentList
+        post={post}
+        commentToEdit={handleToEdit}
+        handleDelete={handleDeleteComment}
+      />
     </>
   );
 };

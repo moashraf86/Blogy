@@ -11,7 +11,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "../ui/dropdown-menu";
-import { debounce } from "../../utils/debounce";
 import {
   RiBookmarkFill,
   RiBookmarkLine,
@@ -30,6 +29,7 @@ import {
   AlertDialogTitle,
 } from "../ui/alert-dialog";
 import { GoogleIcon } from "../shared/GoogleIcon";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const PostItem = ({ post, handleShowModal }) => {
   const { dispatch } = useContext(PostsContext);
@@ -38,13 +38,36 @@ export const PostItem = ({ post, handleShowModal }) => {
   const isOwner = currentUser?.id === post.authorId;
   const isBookmarked = currentUser?.bookmarks.includes(post.id);
   const [bookmarkAlert, setBookmarkAlert] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [Bookmarking, setBookmarking] = useState(false);
+
+  /**
+   * Refresh the query cache
+   */
+  const queryClient = useQueryClient(); // Correctly use the hook
+
+  const refreshCache = () => {
+    queryClient.invalidateQueries(["bookmarksCount", post.id]);
+  };
+  /**
+   * Custom Hook to fetch bookmarks count
+   */
+  const useFetchBookmarksCount = () => {
+    return useQuery({
+      queryKey: ["bookmarksCount", post.id],
+      queryFn: async () => {
+        const postRef = doc(db, "posts", post.id);
+        const postSnap = await getDoc(postRef);
+        return postSnap.data().bookmarksCount;
+      },
+    });
+  };
+  // destructure the data from the custom hook
+  const { data: bookmarksCountData, isLoading } = useFetchBookmarksCount();
 
   /**
    * Handle Add Bookmark
    */
-
-  const handleAddBookmark = debounce((post) => {
+  const handleAddBookmark = (post) => {
     // if the user is not signed in, return
     if (!currentUser || isGuest) {
       setBookmarkAlert(true);
@@ -55,15 +78,10 @@ export const PostItem = ({ post, handleShowModal }) => {
       alert("You are offline. Please check your internet connection.");
       return;
     }
-    // // update the bookmark state in UI immediately to give feedback to the user
-    // setBookmarks({
-    //   isBookmarked: true,
-    //   bookmarksCount: bookmarks.bookmarksCount + 1,
-    // });
     // add the bookmark to the database
     const addBookmark = async (post) => {
       try {
-        setLoading(true);
+        setBookmarking(true);
         const userRef = doc(db, "users", currentUser?.id);
         const postRef = doc(db, "posts", post?.id);
         const userSnap = await getDoc(userRef);
@@ -80,33 +98,30 @@ export const PostItem = ({ post, handleShowModal }) => {
             ? userSnap.data().bookmarks
             : [...userSnap.data().bookmarks, post.id],
         });
-        // update the post reducer
-        dispatch({
-          type: "EDIT_POST",
-          payload: { ...post, bookmarksCount: post.bookmarksCount + 1 },
-        });
         // update the currentUser reducer
         updateUser({
           bookmarks: userSnap.data().bookmarks.includes(post.id)
             ? userSnap.data().bookmarks
             : [...userSnap.data().bookmarks, post.id],
         });
+        // refetch the posts query
+        refreshCache();
       } catch (error) {
         console.log(error);
       } finally {
-        setLoading(false);
+        setBookmarking(false);
       }
     };
     addBookmark(post);
-  }, 300);
+  };
 
   /**
    * Handle Remove Bookmark
    */
-  const handleRemoveBookmark = debounce((post) => {
+  const handleRemoveBookmark = (post) => {
     const removeBookmark = async (post) => {
       try {
-        setLoading(true);
+        setBookmarking(true);
         const postRef = doc(db, "posts", post?.id);
         const userRef = doc(db, "users", currentUser?.id);
         const userSnap = await getDoc(userRef);
@@ -129,14 +144,16 @@ export const PostItem = ({ post, handleShowModal }) => {
         updateUser({
           bookmarks: userSnap.data().bookmarks.filter((id) => id !== post.id),
         });
+        // refetch the posts query
+        refreshCache();
       } catch (error) {
         console.log(error);
       } finally {
-        setLoading(false);
+        setBookmarking(false);
       }
     };
     removeBookmark(post);
-  }, 300);
+  };
 
   /**
    * Handle Sign In With Google
@@ -199,43 +216,46 @@ export const PostItem = ({ post, handleShowModal }) => {
 
             <div className="flex items-center gap-4">
               {/* Bookmarks */}
-              <div className="flex items-center">
-                {isBookmarked ? (
-                  <button
-                    className="cursor-pointer text-primary p-1"
-                    onClick={() => handleRemoveBookmark(post)}
-                    aria-label="Remove Bookmark"
-                  >
-                    {loading ? (
-                      <RiLoader4Line
-                        size={18}
-                        className="animate-spin duration-600 fill-primary"
-                      />
-                    ) : (
-                      <RiBookmarkFill size={18} className="fill-primary" />
-                    )}
-                  </button>
-                ) : (
-                  <button
-                    className="cursor-pointer text-primary p-1"
-                    onClick={() => handleAddBookmark(post)}
-                    aria-label="Add Bookmark"
-                  >
-                    {loading ? (
-                      <RiLoader4Line
-                        size={18}
-                        className="animate-spin duration-600 fill-primary"
-                      />
-                    ) : (
-                      <RiBookmarkLine size={18} className="fill-primary" />
-                    )}
-                  </button>
-                )}
-
-                <p className="text-primary">
-                  {post.bookmarksCount > 0 && post.bookmarksCount}
-                </p>
-              </div>
+              {isLoading ? (
+                <RiLoader4Line size={18} className="fill-primary" />
+              ) : (
+                <div className="flex items-center">
+                  {isBookmarked ? (
+                    <button
+                      className="cursor-pointer text-primary p-1"
+                      onClick={() => handleRemoveBookmark(post)}
+                      aria-label="Remove Bookmark"
+                    >
+                      {Bookmarking ? (
+                        <RiLoader4Line
+                          size={18}
+                          className="animate-spin duration-600 fill-primary"
+                        />
+                      ) : (
+                        <RiBookmarkFill size={18} className="fill-primary" />
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      className="cursor-pointer text-primary p-1"
+                      onClick={() => handleAddBookmark(post)}
+                      aria-label="Add Bookmark"
+                    >
+                      {Bookmarking ? (
+                        <RiLoader4Line
+                          size={18}
+                          className="animate-spin duration-600 fill-primary"
+                        />
+                      ) : (
+                        <RiBookmarkLine size={18} className="fill-primary" />
+                      )}
+                    </button>
+                  )}
+                  <p className="text-primary">
+                    {bookmarksCountData > 0 && bookmarksCountData}
+                  </p>
+                </div>
+              )}
 
               {/* comments */}
               {post.commentsCount > 0 && (
