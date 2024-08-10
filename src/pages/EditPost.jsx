@@ -34,12 +34,12 @@ export const EditPost = () => {
   const { data: post } = useFetchPost();
 
   let navigate = useNavigate();
-  const [image, setImage] = useState(post.image);
+  const [image, setImage] = useState(post?.image);
   const [isImageRequired, setIsImageRequired] = useState(true);
   const [formData, setFormData] = useState({
-    title: post.title || "",
-    content: post.content || "",
-    tag: post.tag || "",
+    title: post?.title || "",
+    content: post?.content || "",
+    tag: post?.tag || "",
   });
   const { title, content, tag } = formData;
   const [errors, setErrors] = useState({
