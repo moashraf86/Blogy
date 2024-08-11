@@ -32,6 +32,14 @@ export function ComboboxDemo({ tags, onSelect, selectedValue }) {
     setOpen(false);
     onSelect({ target: { name: "tag", value } });
   };
+
+  /**
+   * useEffect to update value when selectedValue prop changes
+   */
+  React.useEffect(() => {
+    setValue(selectedValue || "Select Tag...");
+  }, [selectedValue]);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>

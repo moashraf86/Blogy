@@ -8,15 +8,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { getRelTime } from "../../utils/getRelTime";
 import { RiMore2Fill } from "@remixicon/react";
+
 export const Comment = ({ comment, commentToEdit, handleDelete }) => {
   const { authorName, authorImage, authorId, content, createdAt } = comment;
   const { currentUser } = useContext(AuthContext);
   const isCommentOwner = currentUser?.id === authorId;
+  const userName = authorName;
   const date = new Date(createdAt.seconds * 1000);
   const timeAgo = getRelTime(date);
-
+  const [firstName, lastName] = userName.split(" ") || "";
   return (
     <div
       key={comment.id}
@@ -24,11 +27,12 @@ export const Comment = ({ comment, commentToEdit, handleDelete }) => {
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
-          <img
-            src={authorImage || "https://i.pravatar.cc/150?img=1"}
-            alt={authorName}
-            className="w-8 h-8 rounded-full mr-2"
-          />
+          <Avatar className="w-8 h-8 mr-2 rounded-full overflow-clip flex items-center justify-center text-sm border border-primary/20">
+            <AvatarImage src={authorImage} alt="User avatar" />
+            <AvatarFallback className="flex text-xs">
+              {firstName[0]} {lastName[0]}
+            </AvatarFallback>
+          </Avatar>
           <div className="flex items-center gap-1">
             <Link to={`/users/${authorId}`}>
               <p className="text-sm font-bold">{authorName}</p>

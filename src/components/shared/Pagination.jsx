@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 export const Pagination = ({
-  paginate,
+  setCurrentPage,
   currentPage,
   totalPosts,
   postsPerPage,
@@ -14,7 +14,7 @@ export const Pagination = ({
           pages.map((page) => (
             <li key={page}>
               <button
-                onClick={() => paginate(page)}
+                onClick={() => setCurrentPage(page)}
                 className={`py-1 px-3 ${
                   page === currentPage
                     ? "bg-primary text-primary-foreground"

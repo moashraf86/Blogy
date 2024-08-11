@@ -1,3 +1,8 @@
+/**
+ * markdownToPlainText converts markdown content to plain text.
+ * @param {*} content
+ * @returns {string} - The plain text content
+ */
 export const markdownToPlainText = (content) => {
   return content
     .replace(/(\*\*|__)(.*?)\1/g, "$2") // bold

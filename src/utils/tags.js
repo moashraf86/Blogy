@@ -1,3 +1,7 @@
+/**
+ * Tags for the blog posts
+ * @type {Array} - The array of tags for the blog posts
+ */
 export const tags = [
   {
     value: "web",

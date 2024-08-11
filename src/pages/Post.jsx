@@ -1,36 +1,27 @@
-import { useContext } from "react";
 import { useParams } from "react-router-dom";
-import { CommentsContext } from "../context/CommentsContext";
-import { collection, doc, getDoc } from "firebase/firestore";
-import { db } from "../utils/firebase";
 import { Comments } from "../components/layout/Comments";
 import { SignlePost } from "../components/layout/SinglePost";
 import { Skeleton } from "../components/ui/skeleton";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { RiErrorWarningLine } from "@remixicon/react";
-import { useQuery } from "@tanstack/react-query";
+import { useFetchPost } from "../hooks/useFetchPost";
+import { useFetchComments } from "../hooks/useFetchComments";
 
 export const Post = () => {
-  const { comments } = useContext(CommentsContext);
+  /**
+   * Get the Post ID from the URL
+   */
   const { id } = useParams();
 
-  // fetch single post from firebase based on the id
-  const fetchPost = async () => {
-    const postCollection = collection(db, "posts");
-    const postDoc = doc(postCollection, id);
-    const postSnap = await getDoc(postDoc);
-    const postData = postSnap.data();
-    return postData;
-  };
+  /**
+   * Fetch Post by ID using the custom hook
+   */
+  const { data: post, isPending, isError, error } = useFetchPost(id);
 
-  const useFetchPost = () => {
-    return useQuery({
-      queryKey: ["post", id],
-      queryFn: fetchPost,
-    });
-  };
-
-  const { data: post, isPending, isError, error } = useFetchPost();
+  /**
+   * Fetch Comments by Post ID
+   */
+  const { data: comments } = useFetchComments(id);
 
   return (
     <div className="max-w-[800px] mx-auto mt-8">

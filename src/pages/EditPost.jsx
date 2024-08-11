@@ -1,45 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { collection, doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../utils/firebase";
 import {
   validateTitle,
   validateContent,
-  validateImage,
   validateTag,
+  validateForm,
 } from "../utils/validateForm";
 import { Form } from "../components/layout/Form";
 import { markdownToPlainText } from "../utils/markdownToPlainText";
-import { useQuery } from "@tanstack/react-query";
+import { editPost } from "../services/editPost";
+import { useFetchPost } from "../hooks/useFetchPost";
+import { handleFormChange } from "../utils/handleFormChange";
+import { handleUploadImage } from "../utils/handleUploadImage";
 
 export const EditPost = () => {
-  const id = useParams().id;
-  // fetch single post from firebase based on the id
-  const fetchPost = async () => {
-    const postCollection = collection(db, "posts");
-    const postDoc = doc(postCollection, id);
-    const postSnap = await getDoc(postDoc);
-    const postData = postSnap.data();
-    return postData;
-  };
-  /**
-   * Custom Hook to fetch a single post
-   */
-  const useFetchPost = () => {
-    return useQuery({
-      queryKey: ["post", id],
-      queryFn: fetchPost,
-    });
-  };
-  const { data: post } = useFetchPost();
+  const { id } = useParams(); // Retrieve post ID from URL parameters
+  const navigate = useNavigate(); // Hook to programmatically navigate
 
-  let navigate = useNavigate();
-  const [image, setImage] = useState(post?.image);
+  // Fetch post data using custom hook
+  const { data: post } = useFetchPost(id);
+
+  // Initialize state with default values; updated once post data is available
+  const [image, setImage] = useState(null);
   const [isImageRequired, setIsImageRequired] = useState(true);
   const [formData, setFormData] = useState({
-    title: post?.title || "",
-    content: post?.content || "",
-    tag: post?.tag || "",
+    title: "",
+    content: "",
+    tag: "",
   });
   const { title, content, tag } = formData;
   const [errors, setErrors] = useState({
@@ -48,89 +35,97 @@ export const EditPost = () => {
     tag: "",
     image: "",
   });
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  // Update formData state when post data is available
+  useEffect(() => {
+    if (post) {
+      setFormData({
+        title: post.title || "",
+        content: post.content || "",
+        tag: post.tag || "",
+      });
+      setImage(post.image || null);
+    }
+  }, [post]);
 
   /**
    * Convert Markdown to Plain Text
+   * @returns {String} - Plain text content
    */
   const plainTextContent = markdownToPlainText(content || "");
-  /**
-   * Validate Form Inputs
-   */
-  const validateForm = () => {
-    let validationErrors = {};
-    validationErrors.title = validateTitle(title);
-    validationErrors.content = validateContent(plainTextContent);
-    validationErrors.tag = validateTag(tag);
-    validationErrors.image = validateImage(image);
-    setErrors(validationErrors);
-    return Object.values(validationErrors).every((err) => err === true); // True || False
-  };
 
   /**
-   * Handle Inputs Change
+   * Handle input field changes
    */
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    let validationErrors = errors;
-    if (e.target.name === "title")
-      validationErrors.title = validateTitle(e.target.value);
-    if (e.target.name === "content")
-      validationErrors.content = validateContent(
-        markdownToPlainText(e.target.value)
-      );
-    if (e.target.name === "tag")
-      validationErrors.tag = validateTag(e.target.value);
-    setErrors(validationErrors);
+    handleFormChange(
+      e,
+      formData,
+      setFormData,
+      isSubmitted,
+      errors,
+      setErrors,
+      validateTitle,
+      validateContent,
+      validateTag,
+      markdownToPlainText
+    );
   };
 
   /**
-   * Handle Image Change
+   * Handle image change
    */
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadstart = () => {
-      // check if the image is valid
-      let validationErrors = {};
-      validationErrors.image = validateImage(file); //
-      setErrors(validationErrors);
-    };
-
-    if (file && file.size < 1000000) {
-      reader.onloadend = () => {
-        setImage(reader.result);
-      };
-    }
+    handleUploadImage({
+      e,
+      setImage,
+      errors,
+      setErrors,
+      image,
+      isImageRequired,
+    });
   };
 
   /**
-   * Handle Remove Image
+   * Handle removal of the selected image
    */
   const handleRemoveImage = () => {
     setImage(null);
   };
+
   /**
-   * Handle Edit Post
+   * Handle post update submission
    */
   const handleEditPost = (e) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      console.log("ERRORS");
-      return;
-    }
-    const editPost = async () => {
-      // Update the post on firebase
-      const postRef = doc(db, "posts", id);
-      const data = {
+    e.preventDefault(); // Prevent default form submission
+    setIsSubmitted(true); // Set form submission status
+
+    /**
+     * Validate form inputs and update errors state
+     * @returns {Boolean} - True if all inputs are valid
+     */
+    if (
+      !validateForm({
         title,
-        content,
+        content: plainTextContent,
         tag,
-        image: image || `https://picsum.photos/seed/${tag}/800/600`,
-      };
-      await updateDoc(postRef, data);
-    };
-    editPost();
+        image,
+        isImageRequired,
+        setErrors,
+      })
+    )
+      return;
+
+    // Call editPost service with updated data
+    editPost({
+      id,
+      title,
+      content,
+      tag,
+      image,
+    });
+
+    // Navigate to the home page after a short delay
     setTimeout(() => {
       navigate("/");
     }, 300);

@@ -16,7 +16,7 @@ export const Filter = ({ handleFilter }) => {
       <SelectContent>
         <SelectGroup>
           <SelectItem value="all">All</SelectItem>
-          <SelectItem value="web-development">Web</SelectItem>
+          <SelectItem value="web">Web</SelectItem>
           <SelectItem value="react">React</SelectItem>
           <SelectItem value="javascript">JavaScript</SelectItem>
           <SelectItem value="html">HTML</SelectItem>
