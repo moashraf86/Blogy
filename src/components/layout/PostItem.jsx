@@ -1,10 +1,7 @@
 /* eslint-disable react/prop-types */
 import { Link } from "react-router-dom";
 import { useContext, useState } from "react";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../../utils/firebase";
 import { AuthContext } from "../../context/AuthContext";
-import { PostsContext } from "../../context/PostsContext";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -29,10 +26,12 @@ import {
   AlertDialogTitle,
 } from "../ui/alert-dialog";
 import { GoogleIcon } from "../shared/GoogleIcon";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { useFetchBookmarksCount } from "../../hooks/useFetchBookmarksCount";
+import { addBookmark } from "../../services/addBookmark";
+import { removeBookmark } from "../../services/removeBookmark";
 
 export const PostItem = ({ post, handleShowModal }) => {
-  const { dispatch } = useContext(PostsContext);
   const { currentUser, updateUser, signIn } = useContext(AuthContext);
   const isGuest = currentUser?.isGuest;
   const isOwner = currentUser?.id === post.authorId;
@@ -41,28 +40,18 @@ export const PostItem = ({ post, handleShowModal }) => {
   const [Bookmarking, setBookmarking] = useState(false);
 
   /**
-   * Refresh the query cache
+   * Refresh the query cache after adding or removing a bookmark
    */
   const queryClient = useQueryClient(); // Correctly use the hook
-
   const refreshCache = () => {
     queryClient.invalidateQueries(["bookmarksCount", post.id]);
+    queryClient.invalidateQueries(["bookmarks", currentUser.id]);
   };
+
   /**
-   * Custom Hook to fetch bookmarks count
+   * Fetch Bookmarks Count
    */
-  const useFetchBookmarksCount = () => {
-    return useQuery({
-      queryKey: ["bookmarksCount", post.id],
-      queryFn: async () => {
-        const postRef = doc(db, "posts", post.id);
-        const postSnap = await getDoc(postRef);
-        return postSnap.data().bookmarksCount;
-      },
-    });
-  };
-  // destructure the data from the custom hook
-  const { data: bookmarksCountData, isLoading } = useFetchBookmarksCount();
+  const { data: bookmarksCountData, isLoading } = useFetchBookmarksCount(post);
 
   /**
    * Handle Add Bookmark
@@ -78,81 +67,26 @@ export const PostItem = ({ post, handleShowModal }) => {
       alert("You are offline. Please check your internet connection.");
       return;
     }
-    // add the bookmark to the database
-    const addBookmark = async (post) => {
-      try {
-        setBookmarking(true);
-        const userRef = doc(db, "users", currentUser?.id);
-        const postRef = doc(db, "posts", post?.id);
-        const userSnap = await getDoc(userRef);
-        const postSnap = await getDoc(postRef);
-        // update post count + 1
-        await updateDoc(postRef, {
-          ...post,
-          bookmarksCount: postSnap.data().bookmarksCount + 1,
-        });
-        // update user doc bookmarks array
-        await updateDoc(userRef, {
-          // check if the post is already bookmarked
-          bookmarks: userSnap.data().bookmarks.includes(post.id)
-            ? userSnap.data().bookmarks
-            : [...userSnap.data().bookmarks, post.id],
-        });
-        // update the currentUser reducer
-        updateUser({
-          bookmarks: userSnap.data().bookmarks.includes(post.id)
-            ? userSnap.data().bookmarks
-            : [...userSnap.data().bookmarks, post.id],
-        });
-        // refetch the posts query
-        refreshCache();
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setBookmarking(false);
-      }
-    };
-    addBookmark(post);
+
+    addBookmark(post, currentUser, updateUser, setBookmarking, refreshCache); // Add Bookmark
   };
 
   /**
    * Handle Remove Bookmark
    */
   const handleRemoveBookmark = (post) => {
-    const removeBookmark = async (post) => {
-      try {
-        setBookmarking(true);
-        const postRef = doc(db, "posts", post?.id);
-        const userRef = doc(db, "users", currentUser?.id);
-        const userSnap = await getDoc(userRef);
-        const postSnap = await getDoc(postRef);
-        // update post count - 1
-        await updateDoc(postRef, {
-          ...post,
-          bookmarksCount: Math.max(postSnap.data().bookmarksCount - 1, 0),
-        });
-        // update user doc bookmarks array
-        await updateDoc(userRef, {
-          bookmarks: userSnap.data().bookmarks.filter((id) => id !== post.id),
-        });
-        // update post reducer
-        dispatch({
-          type: "EDIT_POST",
-          payload: { ...post, bookmarksCount: post.bookmarksCount - 1 },
-        });
-        // update currentUser reducer
-        updateUser({
-          bookmarks: userSnap.data().bookmarks.filter((id) => id !== post.id),
-        });
-        // refetch the posts query
-        refreshCache();
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setBookmarking(false);
-      }
-    };
-    removeBookmark(post);
+    // if the user is not signed in, return
+    if (!currentUser || isGuest) {
+      setBookmarkAlert(true);
+      return;
+    }
+    // check if the user is offline
+    if (!navigator.onLine) {
+      alert("You are offline. Please check your internet connection.");
+      return;
+    }
+
+    removeBookmark(post, currentUser, updateUser, setBookmarking, refreshCache); // Remove Bookmark
   };
 
   /**

@@ -1,8 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../../utils/firebase";
 import { AuthContext } from "../../context/AuthContext";
 import {
   RiBookmarkFill,
@@ -22,7 +20,11 @@ import {
   AlertDialogTitle,
 } from "../ui/alert-dialog";
 import { GoogleIcon } from "../shared/GoogleIcon";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { formatTimestamp } from "../../utils/formatTimestamp";
+import { addBookmark } from "../../services/addBookmark";
+import { removeBookmark } from "../../services/removeBookmark";
+import { useFetchBookmarksCount } from "../../hooks/useFetchBookmarksCount";
 
 export const PostFooter = ({ post, comments }) => {
   const { currentUser, updateUser, signIn } = useContext(AuthContext);
@@ -30,31 +32,24 @@ export const PostFooter = ({ post, comments }) => {
   const { authorImage, authorName, authorId, createdAt } = post;
   const { isGuest } = currentUser || {};
   const [bookmarkAlert, setBookmarkAlert] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [Bookmarking, setBookmarking] = useState(false);
+
+  /**
+   *  Get Date from the createdAt timestamp
+   */
+  const date = formatTimestamp(createdAt);
 
   /**
    * Refresh the query cache
    */
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient(); // Correctly use the hook
   const refreshCache = () => {
     queryClient.invalidateQueries(["bookmarksCount", post.id]);
+    queryClient.invalidateQueries(["bookmarks", currentUser.id]);
   };
 
-  /**
-   * Custom Hook to fetch bookmarks count
-   */
-  const useFetchBookmarksCount = () => {
-    return useQuery({
-      queryKey: ["bookmarksCount", post.id],
-      queryFn: async () => {
-        const postRef = doc(db, "posts", post.id);
-        const postSnap = await getDoc(postRef);
-        return postSnap.data().bookmarksCount;
-      },
-    });
-  };
   // destructure the data from the custom hook
-  const { data: bookmarksCountData } = useFetchBookmarksCount();
+  const { data: bookmarksCountData, isLoading } = useFetchBookmarksCount(post);
 
   /**
    * Handle Add Bookmark
@@ -65,81 +60,31 @@ export const PostFooter = ({ post, comments }) => {
       setBookmarkAlert(true);
       return;
     }
-    // if the user is offline
+    // check if the user is offline
     if (!navigator.onLine) {
       alert("You are offline. Please check your internet connection.");
       return;
     }
-    // add the bookmark to the database
-    const addBookmark = async (post) => {
-      try {
-        setLoading(true);
-        const userRef = doc(db, "users", currentUser?.id);
-        const postRef = doc(db, "posts", post?.id);
-        const userSnap = await getDoc(userRef);
-        const postSnap = await getDoc(postRef);
-        // update post count + 1
-        await updateDoc(postRef, {
-          ...post,
-          bookmarksCount: postSnap.data().bookmarksCount + 1,
-        });
-        // update user doc bookmarks array
-        await updateDoc(userRef, {
-          // check if the post is already bookmarked
-          bookmarks: userSnap.data().bookmarks.includes(post.id)
-            ? userSnap.data().bookmarks
-            : [...userSnap.data().bookmarks, post.id],
-        });
-        // update the currentUser reducer
-        updateUser({
-          bookmarks: userSnap.data().bookmarks.includes(post.id)
-            ? userSnap.data().bookmarks
-            : [...userSnap.data().bookmarks, post.id],
-        });
-        // refresh the cache
-        refreshCache();
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    addBookmark(post);
+
+    addBookmark(post, currentUser, updateUser, setBookmarking, refreshCache); // Add Bookmark
   };
 
   /**
    * Handle Remove Bookmark
    */
   const handleRemoveBookmark = (post) => {
-    const removeBookmark = async (post) => {
-      try {
-        setLoading(true);
-        const userRef = doc(db, "users", currentUser?.id);
-        const postRef = doc(db, "posts", post?.id);
-        const userSnap = await getDoc(userRef);
-        const postSnap = await getDoc(postRef);
-        // update post count - 1
-        await updateDoc(postRef, {
-          ...post,
-          bookmarksCount: Math.max(postSnap.data().bookmarksCount - 1, 0),
-        });
-        // update user doc bookmarks array
-        await updateDoc(userRef, {
-          bookmarks: userSnap.data().bookmarks.filter((id) => id !== post.id),
-        });
-        // update currentUser reducer
-        updateUser({
-          bookmarks: userSnap.data().bookmarks.filter((id) => id !== post.id),
-        });
-        // refresh the cache
-        refreshCache();
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    removeBookmark(post);
+    // if the user is not signed in, return
+    if (!currentUser || isGuest) {
+      setBookmarkAlert(true);
+      return;
+    }
+    // check if the user is offline
+    if (!navigator.onLine) {
+      alert("You are offline. Please check your internet connection.");
+      return;
+    }
+
+    removeBookmark(post, currentUser, updateUser, setBookmarking, refreshCache); // Remove Bookmark
   };
 
   /**
@@ -163,49 +108,52 @@ export const PostFooter = ({ post, comments }) => {
             <Link to={`/users/${authorId}`}>{authorName}</Link>
           </p>
           <p className="text-muted-foreground text-sm ml-2">
-            Published at: {createdAt?.split("T")[0]}
+            Published At: {date}
           </p>
         </div>
       </div>
       <div className="flex items-center gap-4">
         {/* Bookmarks */}
-        <div className="flex items-center gap-1">
-          {isBookmarked ? (
-            <button
-              className="cursor-pointer text-primary"
-              onClick={() => handleRemoveBookmark(post)}
-              aria-label="Remove Bookmark"
-            >
-              {loading ? (
-                <RiLoader4Line
-                  size={18}
-                  className="animate-spin duration-600 fill-primary"
-                />
-              ) : (
-                <RiBookmarkFill size={18} className="fill-primary" />
-              )}
-            </button>
-          ) : (
-            <button
-              className="cursor-pointer text-zinc-50"
-              onClick={() => handleAddBookmark(post)}
-              aria-label="Add Bookmark"
-            >
-              {loading ? (
-                <RiLoader4Line
-                  size={18}
-                  className="animate-spin duration-600 fill-primary"
-                />
-              ) : (
-                <RiBookmarkLine size={18} className="fill-primary" />
-              )}
-            </button>
-          )}
-          {/* Bookmarks count */}
-          <p className="text-primary">
-            {bookmarksCountData > 0 && bookmarksCountData}
-          </p>
-        </div>
+        {isLoading ? (
+          <RiLoader4Line size={18} className="fill-primary" />
+        ) : (
+          <div className="flex items-center gap-1">
+            {isBookmarked ? (
+              <button
+                className="cursor-pointer text-primary p-1"
+                onClick={() => handleRemoveBookmark(post)}
+                aria-label="Remove Bookmark"
+              >
+                {Bookmarking ? (
+                  <RiLoader4Line
+                    size={18}
+                    className="animate-spin duration-600 fill-primary"
+                  />
+                ) : (
+                  <RiBookmarkFill size={18} className="fill-primary" />
+                )}
+              </button>
+            ) : (
+              <button
+                className="cursor-pointer text-primary p-1"
+                onClick={() => handleAddBookmark(post)}
+                aria-label="Add Bookmark"
+              >
+                {Bookmarking ? (
+                  <RiLoader4Line
+                    size={18}
+                    className="animate-spin duration-600 fill-primary"
+                  />
+                ) : (
+                  <RiBookmarkLine size={18} className="fill-primary" />
+                )}
+              </button>
+            )}
+            <p className="text-primary">
+              {bookmarksCountData > 0 && bookmarksCountData}
+            </p>
+          </div>
+        )}
         {/* comments */}
         <div className="flex items-center gap-1">
           <RiChat3Line size={18} className="fill-primary" />

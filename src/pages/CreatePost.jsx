@@ -1,24 +1,25 @@
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, doc, setDoc } from "firebase/firestore";
-import { db } from "../utils/firebase";
 import { AuthContext } from "../context/AuthContext";
 import {
   validateTitle,
   validateContent,
-  validateImage,
   validateTag,
+  validateForm,
 } from "../utils/validateForm";
-import { Form } from "../components/layout/Form";
 import { markdownToPlainText } from "../utils/markdownToPlainText";
+import { handleFormChange } from "../utils/handleFormChange";
+import { createPost } from "../services/createPost";
+import { Form } from "../components/layout/Form";
+import { handleUploadImage } from "../utils/handleUploadImage";
 
 export const CreatePost = () => {
   const { currentUser } = useContext(AuthContext);
   const authorId = currentUser?.id;
   const authorName = currentUser?.name || "Anonymous";
-  const authorImage =
-    currentUser?.photoURL || `https://i.pravatar.cc/150?img=${authorId}`;
+  const authorImage = currentUser?.photoURL;
   const isGuest = currentUser?.isGuest;
+  const navigate = useNavigate();
   const [image, setImage] = useState(null);
   const [isImageRequired, setIsImageRequired] = useState(true);
   const [formData, setFormData] = useState({
@@ -33,68 +34,48 @@ export const CreatePost = () => {
     tag: "",
     image: "",
   });
-  let navigate = useNavigate();
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   /**
    * Convert Markdown to Plain Text
+   * @returns {String} - Plain text content
    */
-  const plainTextContent = markdownToPlainText(content);
-  /**
-   * Validate Form Inputs
-   */
-  const validateForm = () => {
-    let validationErrors = {};
-    validationErrors.title = validateTitle(title);
-    validationErrors.content = validateContent(plainTextContent);
-    validationErrors.tag = validateTag(tag);
-    validationErrors.image = validateImage(image, isImageRequired);
-    setErrors(validationErrors);
-    return Object.values(validationErrors).every((err) => err === true); // True || False
-  };
+  const plainTextContent = markdownToPlainText(content || "");
 
   /**
    * Handle Inputs Change
    */
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (isSubmitted) {
-      let validationErrors = errors;
-      if (e.target.name === "title")
-        validationErrors.title = validateTitle(e.target.value);
-      if (e.target.name === "content")
-        validationErrors.content = validateContent(
-          markdownToPlainText(e.target.value)
-        );
-      if (e.target.name === "tag")
-        validationErrors.tag = validateTag(e.target.value);
-      setErrors(validationErrors);
-    }
+    handleFormChange(
+      e,
+      formData,
+      setFormData,
+      isSubmitted,
+      errors,
+      setErrors,
+      validateTitle,
+      validateContent,
+      validateTag,
+      markdownToPlainText
+    );
   };
 
   /**
    * Handle Image Change
    */
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadstart = () => {
-      // check if the image is valid
-      let validationErrors = {};
-      validationErrors.image = validateImage(file); //
-      setErrors(validationErrors);
-    };
-
-    if (file && file.size < 1000000) {
-      reader.onloadend = () => {
-        setImage(reader.result);
-      };
-    }
+    handleUploadImage({
+      e,
+      setImage,
+      errors,
+      setErrors,
+      image,
+      isImageRequired,
+    });
   };
 
   /**
-   * Handle Remove Image
+   * Remove the selected image
    */
   const handleRemoveImage = () => {
     setImage(null);
@@ -104,30 +85,40 @@ export const CreatePost = () => {
    * Handle Create Post
    */
   const handleCreatePost = (e) => {
-    e.preventDefault();
-    setIsSubmitted(true);
-    // check if there are any errors
-    if (!validateForm()) return;
-    // Add post to the posts collection
-    const createPost = async () => {
-      const postsRef = doc(collection(db, "posts"));
-      const data = {
-        id: postsRef.id,
+    e.preventDefault(); // Prevent default form submission
+    setIsSubmitted(true); // Set form submission status
+
+    /**
+     * Validate Form Inputs
+     * @returns {Boolean} - True if all inputs are valid
+     */
+    if (
+      !validateForm({
         title,
-        content,
+        content: plainTextContent,
         tag,
-        image: image || `https://picsum.photos/seed/${tag}/1280/720`,
-        bookmarksCount: 0,
-        authorId: authorId,
-        authorName: authorName,
-        authorImage: authorImage,
-        published: isGuest ? false : true,
-        createdAt: new Date().toISOString(),
-      };
-      await setDoc(postsRef, data);
-    };
-    createPost();
-    setImage(null);
+        image,
+        isImageRequired,
+        setErrors,
+      })
+    )
+      return;
+
+    // Create a new post with the form data
+    createPost({
+      title,
+      content,
+      tag,
+      image,
+      authorId,
+      authorName,
+      authorImage,
+      isGuest,
+    });
+
+    setImage(null); // Reset the image state
+
+    // Redirect to the home page after creating the post
     setTimeout(() => {
       navigate("/");
     }, 300);
