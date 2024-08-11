@@ -24,6 +24,8 @@ import {
 } from "@remixicon/react";
 /**
  * Edit command icons in the markdown editor
+ * @param {Object} cmd - command object
+ * @returns {Object} - The updated command object
  */
 export const handleToolbarIcons = (cmd) => {
   const iconStyle = {
