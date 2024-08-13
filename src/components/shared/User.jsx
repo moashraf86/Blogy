@@ -11,11 +11,9 @@ import {
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { Button } from "../ui/button";
-import { buttonVariants } from "@/components/ui/button";
 import {
   RiBookmarkFill,
   RiBookmarkLine,
-  RiEditBoxLine,
   RiFileListFill,
   RiFileListLine,
   RiHome5Fill,
@@ -27,9 +25,9 @@ import {
 
 export const User = () => {
   const { currentUser, signOut } = useContext(AuthContext);
-  const isGuest = currentUser?.isGuest;
-  const userImg = currentUser?.photoURL;
-  const userName = currentUser?.name || "Anonymous";
+  const { isGuest } = currentUser || false;
+  const { photoURL: userImg } = currentUser || "";
+  const { name: userName } = currentUser || "Anonymous";
   const currentPage = useHref().split("/")[1];
   /**
    * Get the first char of the user name and the first char after the space
@@ -41,9 +39,9 @@ export const User = () => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
-            className="w-10 h-10 rounded-full cursor-pointer overflow-clip border border-zinc-300 dark:border-zinc-800"
+            className="bg-transparent cursor-pointer overflow-clip "
           >
             {!isGuest ? (
               <Avatar className="flex w-full h-full items-center justify-center">
@@ -57,25 +55,13 @@ export const User = () => {
             )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[16rem]">
+        <DropdownMenuContent
+          align="end"
+          className="min-w-[12rem] md:min-w-[14rem]"
+        >
           <DropdownMenuLabel className="text-base font-bold">
             {userName}
           </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {currentUser && (
-            <DropdownMenuItem asChild>
-              <Link
-                className={
-                  buttonVariants({ variant: "default" }) + " w-full gap-3 mt-1"
-                }
-                to="/create"
-                aria-label="Create a new post"
-              >
-                <RiEditBoxLine size={18} className="fill-current" />
-                <span>Write Post</span>
-              </Link>
-            </DropdownMenuItem>
-          )}
           <DropdownMenuSeparator aria-label="separator line" />
           <DropdownMenuItem
             asChild
