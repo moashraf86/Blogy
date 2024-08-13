@@ -7,9 +7,10 @@ import { fetchBookmarksCount } from "../services/fetchBookmarksCount";
  * @param {Object} post - The post object containing the ID for fetching bookmarks count.
  * @returns {Object} - Result of the query, including bookmarks count data and query status.
  */
-export const useFetchBookmarksCount = (post) => {
+export const useFetchBookmarksCount = (postId) => {
   return useQuery({
-    queryKey: ["bookmarksCount", post.id],
-    queryFn: () => fetchBookmarksCount(post),
+    queryKey: ["bookmarksCount", postId],
+    queryFn: () => fetchBookmarksCount(postId),
+    enabled: !!postId, // Enable the query if the post ID is available
   });
 };

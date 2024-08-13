@@ -25,14 +25,24 @@ import { formatTimestamp } from "../../utils/formatTimestamp";
 import { addBookmark } from "../../services/addBookmark";
 import { removeBookmark } from "../../services/removeBookmark";
 import { useFetchBookmarksCount } from "../../hooks/useFetchBookmarksCount";
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { Button } from "../ui/button";
 
 export const PostFooter = ({ post, comments }) => {
   const { currentUser, updateUser, signIn } = useContext(AuthContext);
+  const { id: userId } = currentUser || {};
   const isBookmarked = currentUser?.bookmarks?.includes(post.id);
-  const { authorImage, authorName, authorId, createdAt } = post;
+  const {
+    authorImage,
+    authorName,
+    authorId,
+    createdAt,
+    id: postId,
+  } = post || {};
   const { isGuest } = currentUser || {};
   const [bookmarkAlert, setBookmarkAlert] = useState(false);
   const [Bookmarking, setBookmarking] = useState(false);
+  const [firstName, lastName] = authorName.split(" ") || "";
 
   /**
    *  Get Date from the createdAt timestamp
@@ -44,12 +54,13 @@ export const PostFooter = ({ post, comments }) => {
    */
   const queryClient = useQueryClient(); // Correctly use the hook
   const refreshCache = () => {
-    queryClient.invalidateQueries(["bookmarksCount", post.id]);
-    queryClient.invalidateQueries(["bookmarks", currentUser.id]);
+    queryClient.invalidateQueries(["bookmarksCount", postId]);
+    queryClient.invalidateQueries(["bookmarks", userId]);
   };
 
   // destructure the data from the custom hook
-  const { data: bookmarksCountData, isLoading } = useFetchBookmarksCount(post);
+  const { data: bookmarksCountData, isLoading } =
+    useFetchBookmarksCount(postId);
 
   /**
    * Handle Add Bookmark
@@ -98,11 +109,16 @@ export const PostFooter = ({ post, comments }) => {
   return (
     <div className="flex justify-between items-center py-3 my-4 border-t border-b border-border">
       <div className="flex items-center gap-2">
-        <img
-          src={authorImage}
-          alt={authorName}
-          className="w-10 h-10 rounded-full"
-        />
+        <Button variant="outline" size="icon" className="overflow-clip">
+          <Avatar className="flex w-full h-full items-center justify-center">
+            <AvatarImage src={authorImage} alt={authorName} />
+            <AvatarFallback>
+              {authorName === "Anonymous"
+                ? "A"
+                : `${firstName[0]} ${lastName[0]}`}
+            </AvatarFallback>
+          </Avatar>
+        </Button>
         <div className="flex flex-col ">
           <p className="text-primary font-semibold ml-2">
             <Link to={`/users/${authorId}`}>{authorName}</Link>
