@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import {
@@ -29,13 +29,31 @@ export const CreatePost = () => {
   });
   const { title, content, tag } = formData;
   const [errors, setErrors] = useState({
-    title: "",
-    content: "",
-    tag: "",
-    image: "",
+    title: {},
+    content: {},
+    tag: {},
+    image: {},
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [redirectTime, setRedirectTime] = useState(5);
 
+  /**
+   * Redirect to the home page if user is not logged in
+   */
+  useEffect(() => {
+    if (!currentUser) {
+      let time = 5;
+      const intervalId = setInterval(() => {
+        setRedirectTime((prevTime) => prevTime - 1);
+        time -= 1;
+        if (time === 0) {
+          clearInterval(intervalId);
+          navigate("/");
+        }
+      }, 1000);
+      return () => clearInterval(intervalId);
+    }
+  }, [currentUser]);
   /**
    * Convert Markdown to Plain Text
    * @returns {String} - Plain text content
@@ -120,7 +138,10 @@ export const CreatePost = () => {
 
     // Redirect to the home page after creating the post
     setTimeout(() => {
-      navigate("/");
+      // Navigate to the home page if user is not a guest
+      if (!isGuest) navigate("/");
+      // Navigate to the profile page if user is a guest
+      else navigate("/drafts");
     }, 300);
   };
 
@@ -138,6 +159,7 @@ export const CreatePost = () => {
       handleSelectRandomImage={() => setIsImageRequired(!isImageRequired)}
       isImageRequired={isImageRequired}
       errors={errors}
+      redirectTime={redirectTime}
     />
   );
 };
