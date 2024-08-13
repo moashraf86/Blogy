@@ -19,7 +19,7 @@ export const CommentForm = ({
       </label>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 flex-1">
         <textarea
-          className="w-full p-3 text-primary border border-input bg-transparent rounded-md shadow-sm focus:ring-0 focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full p-3 text-primary border border-input bg-transparent rounded-lg shadow-sm focus:ring-0 focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
           name="comment"
           id="comment"
           rows={4}
