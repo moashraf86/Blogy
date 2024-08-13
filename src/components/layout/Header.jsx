@@ -51,9 +51,15 @@ export default function Header() {
         <div className="container px-5 sm:px-8 flex justify-between items-center py-3 px-sm">
           <div className="flex items-center gap-3">
             {pathname !== "/" && <BackButton />}
-            <Link to="/" className="text-2xl font-semibold text-zinc-50">
-              <h1 className="text-2xl font-bold text-zinc-950 dark:text-zinc-50 font-mono">
-                Blogy
+            <Link
+              to="/"
+              className="text-2xl font-semibold text-zinc-50 flex items-center gap-3"
+            >
+              {/* <span className="bg-gradient-to-t from-zinc-950 to-zinc-700 text-zinc-50 text-primary w-10 h-10 rounded-full flex items-center justify-center">
+                <RiEditLine size={18} className="fill-current" />
+              </span> */}
+              <h1 className="text-2xl font-normal text-zinc-950 dark:text-zinc-50 font-Monofett">
+                Blogify
               </h1>
             </Link>
           </div>

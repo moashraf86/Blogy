@@ -23,13 +23,13 @@ export const validateTitle = (title) => {
  * @returns {string|boolean} - Returns an error message if validation fails, or true if the content is valid.
  */
 export const validateContent = (content) => {
-  const regExp = /^.{1500,10000}$/;
+  const regExp = /^.{1000,10000}$/;
   if (!content) {
     return { hasError: true, message: "Content is required" };
   } else if (!regExp.test(content)) {
     return {
       hasError: true,
-      message: "Content must be between 1500 and 10000 characters",
+      message: "Content must be between 1000 and 10000 characters",
     };
   }
   return { hasError: false };

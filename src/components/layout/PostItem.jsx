@@ -126,12 +126,8 @@ export const PostItem = ({ post, handleShowModal }) => {
             </div>
           )}
           {/* Title */}
-          <h3 className="text-xl md:text-2xl text-primary font-bold capitalize">
-            <Link to={`/post/${post.id}`}>
-              {post.title.length > 30
-                ? `${post.title.substring(0, 30)}...`
-                : post.title}
-            </Link>
+          <h3 className="text-xl md:text-2xl text-primary font-bold capitalize text-nowrap overflow-clip text-ellipsis">
+            <Link to={`/post/${post.id}`}>{post.title}</Link>
           </h3>
           {/* Paragraph */}
           <p className="text-muted-foreground break-words">

@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+  - Custom Fonts
+  - Inter: Regular, Medium, Bold, ExtraBold, Black
+  - Monofett: Regular
+  */
+  @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Monofett&display=swap");
+
   :root {
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
@@ -74,10 +81,27 @@
   * {
     @apply border-border;
   }
+  html {
+    @apply antialiased font-inter;
+  }
+
   body {
     @apply bg-background text-foreground;
-    overflow: auto !important;
   }
+
+  p {
+    @apply font-inter;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-inter;
+  }
+
   i {
     @apply text-primary;
   }
@@ -193,8 +217,21 @@
     border: none;
   }
 
+  .w-md-editor-text-pre .token.title.important {
+    @apply text-primary;
+  }
+
   .blog-content,
   .w-md-editor-preview {
+    @apply font-inter;
+    h1,
+    h2,
+    h3 {
+      @apply border-b-0 pb-0 mt-8;
+    }
+    p {
+      @apply font-inter;
+    }
     ol {
       @apply list-decimal;
     }
@@ -206,6 +243,10 @@
     }
     code {
       @apply bg-muted text-primary;
+    }
+    b,
+    strong {
+      @apply font-bold;
     }
   }
 }

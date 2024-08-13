@@ -10,9 +10,7 @@ export const Bookmarks = () => {
   const isGuest = currentUser?.isGuest;
   // Get Current user data from localStorage until it is fetched from the server
   const { id: userId } =
-    currentUser || JSON.parse(localStorage.getItem("currentUser")) || {};
-
-  console.log(userId);
+    JSON.parse(localStorage.getItem("currentUser")) || currentUser || {};
 
   const { data: posts } = useFetchBookmarks(userId, isGuest);
 

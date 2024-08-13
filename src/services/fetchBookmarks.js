@@ -32,8 +32,6 @@ export const fetchBookmarks = async (userId, isGuest) => {
     ),
   };
 
-  console.log(bookmarksQuery);
-
   // Return the query object
   return bookmarksQuery;
 };

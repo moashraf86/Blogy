@@ -39,7 +39,14 @@ export const AuthProvider = ({ children }) => {
         return currentUser;
     }
   };
-  const [currentUser, dispatch] = useReducer(currentUserReducer, null);
+  // fetch the current user from local storage if it exists
+  const initialCurrentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+  // create a state for the current user
+  const [currentUser, dispatch] = useReducer(
+    currentUserReducer,
+    initialCurrentUser
+  );
   const [loading, setLoading] = useState(false);
 
   /**
@@ -97,7 +104,6 @@ export const AuthProvider = ({ children }) => {
     /**
      * - store the user data in local storage when the user signs in
      * - remove the user data from local storage when the user signs out
-     *
      **/
     if (currentUser) {
       localStorage.setItem("currentUser", JSON.stringify(currentUser));
@@ -113,9 +119,22 @@ export const AuthProvider = ({ children }) => {
    */
   const signIn = async () => {
     try {
+      setLoading(true);
+      if (currentUser) {
+        /**
+         * - if there's signed in users, sign Them out
+         * - delete Guest users data from firebase
+         */
+        signOut();
+        deleteGuestUsers();
+      }
+      // sign in with Google
       await signInWithPopup(auth, provider);
+      // sign in with Google
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
   /**
@@ -144,6 +163,11 @@ export const AuthProvider = ({ children }) => {
    */
   const signInAsGuest = async () => {
     try {
+      // if there's a user signed in, sign them out
+      if (currentUser) {
+        return;
+      }
+      // sign in anonymously
       await signInAnonymously(auth);
     } catch (error) {
       console.error(error);

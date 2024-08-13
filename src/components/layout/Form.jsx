@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Switch } from "../ui/switch";
@@ -14,6 +14,7 @@ import { Editor } from "./Editor";
 import { ComboboxDemo } from "../ui/combo-box";
 import { tags } from "../../utils/tags";
 import { Button } from "../ui/button";
+import { SignInModal } from "../shared/SignInModal";
 export const Form = ({
   title,
   content,
@@ -31,7 +32,7 @@ export const Form = ({
 }) => {
   const { currentUser } = useContext(AuthContext);
   const isGuest = currentUser?.isGuest;
-
+  const [showModal, setShowModal] = useState(false);
   /**
    * Hide the alert message
    */
@@ -49,14 +50,27 @@ export const Form = ({
     <>
       {/* If user is a guest, show a message to log in with Google to publish posts */}
       {isGuest ? (
-        <div className="container pt-6 px-5 sm:px-8 relative">
-          <Alert variant="info">
-            <RiInformationLine />
-            <AlertTitle>Info</AlertTitle>
-            <AlertDescription>
-              Login with Google to publish your posts.
-            </AlertDescription>
-            <button className="absolute top-3 right-3" onClick={hideAlert}>
+        <div className="container pt-6 px-6 max-w-4xl">
+          <Alert
+            variant="info"
+            className="flex flex-col gap-4 sm:flex-row justify-between sm:items-center p-4 sm:py-6 sm:px-8 group"
+          >
+            <div className="flex gap-3">
+              <RiInformationLine className="text-lg min-w-6" />
+              <div className="flex flex-col">
+                <AlertTitle>Action Required</AlertTitle>
+                <AlertDescription>
+                  Log in with Google to publish your posts.
+                </AlertDescription>
+              </div>
+            </div>
+            <Button size="lg" onClick={() => setShowModal(true)}>
+              Sign In
+            </Button>
+            <button
+              className="absolute top-3 right-3 hidden group-hover:inline"
+              onClick={hideAlert}
+            >
               <RiCloseLine />
             </button>
           </Alert>
@@ -225,7 +239,7 @@ export const Form = ({
         <div className="container pt-6">
           <Alert variant="info">
             <RiInformationLine />
-            <AlertTitle>Log in to write a post</AlertTitle>
+            <AlertTitle>Log in Required</AlertTitle>
             <AlertDescription>
               You will be redirected to the home page in <b>{redirectTime}</b>{" "}
               seconds.
@@ -233,6 +247,7 @@ export const Form = ({
           </Alert>
         </div>
       )}
+      <SignInModal showModal={showModal} onCancel={() => setShowModal(false)} />
     </>
   );
 };
