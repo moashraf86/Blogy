@@ -28,6 +28,8 @@
     --danger: 0 84.2% 60.2%;
     --danger-foreground: 0 0% 98%;
 
+    --warning: 40.6 96.1% 40.4%;
+
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 240 10% 3.9%;
@@ -59,6 +61,8 @@
 
     --danger: 0 62.8% 30.6%;
     --danger-foreground: 0 0% 98%;
+
+    --warning: 31.8 81% 28.8%;
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
