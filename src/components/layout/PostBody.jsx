@@ -6,13 +6,9 @@ export const PostBody = ({ post }) => {
   return (
     <>
       {/* Post Image */}
-      <div className="aspect-video bg-gradient-to-r from-zinc-400 to-zinc-800 rounded-none mb-6">
+      <div className="aspect-video bg-gradient-to-r from-zinc-400 to-zinc-800 rounded-lg overflow-clip mb-6">
         {image && (
-          <img
-            src={image}
-            alt={title}
-            className="h-full w-full object-cover rounded-none"
-          />
+          <img src={image} alt={title} className="h-full w-full object-cover" />
         )}
       </div>
       {/* Post Content */}
