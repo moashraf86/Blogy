@@ -5,6 +5,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeProviderContext";
 import { CommentsProvider } from "./context/CommentsContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ScrollToTop } from "./utils/ScrollToTop";
 
 const queryClient = new QueryClient();
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
           <Header />
           <QueryClientProvider client={queryClient}>
             <CommentsProvider>
+              <ScrollToTop />
               <Outlet />
             </CommentsProvider>
           </QueryClientProvider>
