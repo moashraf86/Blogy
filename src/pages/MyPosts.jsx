@@ -3,7 +3,7 @@ import { collection, query, where } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import { AuthContext } from "../context/AuthContext";
 import { PostsList } from "../components/layout/PostsList";
-import { Alert, AlertDescription } from "../components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { RiInformationLine } from "@remixicon/react";
 
 export const MyPosts = () => {
@@ -22,10 +22,13 @@ export const MyPosts = () => {
   // If user is not logged in, show a message to login
   if (!currentUser) {
     return (
-      <Alert variant="default" className="flex items-center gap-3">
-        <RiInformationLine size={24} />
-        <AlertDescription>Please login to see your posts.</AlertDescription>
-      </Alert>
+      <div className="container pt-6 flex flex-col gap-4">
+        <Alert variant="info" className="">
+          <RiInformationLine />
+          <AlertTitle>Info</AlertTitle>
+          <AlertDescription>Please login to see your posts.</AlertDescription>
+        </Alert>
+      </div>
     );
   }
 

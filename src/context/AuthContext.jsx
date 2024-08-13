@@ -7,11 +7,15 @@ import {
   signInAnonymously,
 } from "firebase/auth";
 import {
+  collection,
+  deleteDoc,
   doc,
   getDoc,
+  getDocs,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 
 // create a context for Authentication
@@ -35,8 +39,32 @@ export const AuthProvider = ({ children }) => {
         return currentUser;
     }
   };
-  const [currentUser, dispatch] = useReducer(currentUserReducer, null);
+  // fetch the current user from local storage if it exists
+  const initialCurrentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+  // create a state for the current user
+  const [currentUser, dispatch] = useReducer(
+    currentUserReducer,
+    initialCurrentUser
+  );
   const [loading, setLoading] = useState(false);
+
+  /**
+   * Detect if the Guest user after sign out
+   */
+  const deleteGuestUsers = async () => {
+    const querySnapshot = await getDocs(
+      collection(db, "users"),
+      where("isGuest", "==", true)
+    );
+    querySnapshot.forEach(async (doc) => {
+      const user = doc.data();
+      // check if the user is a guest and the user is inactive
+      if (user.isGuest && !user.isActive) {
+        await deleteDoc(doc.ref);
+      }
+    });
+  };
 
   useEffect(() => {
     // update the current user state when the user signs in or signs out
@@ -52,6 +80,7 @@ export const AuthProvider = ({ children }) => {
             email: user.email,
             photoURL: user.photoURL,
             id: user.uid,
+            createdAt: serverTimestamp(),
             lastLogin: serverTimestamp(),
             isActive: true,
             bookmarks: [],
@@ -69,17 +98,19 @@ export const AuthProvider = ({ children }) => {
           dispatch({ type: "SIGN_IN", payload: userSnap.data() });
           setLoading(false);
         }
-      } else {
-        if (currentUser) {
-          const userRef = doc(db, "users", currentUser.id);
-          await updateDoc(userRef, {
-            isActive: false,
-          });
-          dispatch({ type: "SIGN_OUT", payload: null });
-          setLoading(false);
-        }
       }
     });
+
+    /**
+     * - store the user data in local storage when the user signs in
+     * - remove the user data from local storage when the user signs out
+     **/
+    if (currentUser) {
+      localStorage.setItem("currentUser", JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem("currentUser");
+    }
+
     return () => unsubscribe();
   }, []);
 
@@ -88,9 +119,22 @@ export const AuthProvider = ({ children }) => {
    */
   const signIn = async () => {
     try {
+      setLoading(true);
+      if (currentUser) {
+        /**
+         * - if there's signed in users, sign Them out
+         * - delete Guest users data from firebase
+         */
+        signOut();
+        deleteGuestUsers();
+      }
+      // sign in with Google
       await signInWithPopup(auth, provider);
+      // sign in with Google
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
   /**
@@ -99,10 +143,17 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     try {
       await auth.signOut();
-      dispatch({ type: "SIGN_OUT", payload: null });
+      if (currentUser) {
+        const userRef = doc(db, "users", currentUser.id);
+        await updateDoc(userRef, {
+          isActive: false,
+        });
+        deleteGuestUsers();
+      }
     } catch (error) {
       console.error(error);
     } finally {
+      dispatch({ type: "SIGN_OUT", payload: null });
       setLoading(false);
     }
   };
@@ -112,6 +163,11 @@ export const AuthProvider = ({ children }) => {
    */
   const signInAsGuest = async () => {
     try {
+      // if there's a user signed in, sign them out
+      if (currentUser) {
+        return;
+      }
+      // sign in anonymously
       await signInAnonymously(auth);
     } catch (error) {
       console.error(error);

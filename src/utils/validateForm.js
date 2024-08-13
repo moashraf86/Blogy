@@ -7,11 +7,14 @@ export const validateTitle = (title) => {
   // min 3 chars, max 60 chars al
   const regExp = /^.{10,60}$/;
   if (!title) {
-    return "Title is required";
+    return { hasError: true, message: "Title is required" };
   } else if (!regExp.test(title)) {
-    return "Title must be between 10 and 60 characters";
+    return {
+      hasError: true,
+      message: "Title must be between 10 and 60 characters",
+    };
   }
-  return true;
+  return { hasError: false };
 };
 
 /**
@@ -20,13 +23,16 @@ export const validateTitle = (title) => {
  * @returns {string|boolean} - Returns an error message if validation fails, or true if the content is valid.
  */
 export const validateContent = (content) => {
-  const regExp = /^.{1500,10000}$/;
+  const regExp = /^.{1000,10000}$/;
   if (!content) {
-    return "Content is required";
+    return { hasError: true, message: "Content is required" };
   } else if (!regExp.test(content)) {
-    return "Content must be between 1500 and 10000 characters";
+    return {
+      hasError: true,
+      message: "Content must be between 1000 and 10000 characters",
+    };
   }
-  return true;
+  return { hasError: false };
 };
 
 /**
@@ -36,9 +42,9 @@ export const validateContent = (content) => {
  */
 export const validateTag = (tag) => {
   if (!tag) {
-    return "Tag is required";
+    return { hasError: true, message: "Tag is required" };
   }
-  return true;
+  return { hasError: false };
 };
 
 /**
@@ -49,11 +55,11 @@ export const validateTag = (tag) => {
  */
 export const validateImage = (image, isImageRequired) => {
   if (!image && isImageRequired) {
-    return "Image is required";
+    return { hasError: true, message: "Image is required" };
   } else if (image?.size > 1000000) {
-    return "Image must be less than 1mb";
+    return { hasError: true, message: "Image size must be less than 1MB" };
   }
-  return true;
+  return { hasError: false };
 };
 
 /**
@@ -76,7 +82,9 @@ export const validateForm = ({
   validationErrors.tag = validateTag(tag);
   validationErrors.image = validateImage(image, isImageRequired);
   setErrors(validationErrors);
-  return Object.values(validationErrors).every((err) => err === true); // Returns true if no errors
+  return Object.values(validationErrors).every(
+    (error) => error.hasError === false
+  );
 };
 
 /**

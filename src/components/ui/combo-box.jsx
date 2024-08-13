@@ -20,9 +20,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export function ComboboxDemo({ tags, onSelect, selectedValue }) {
+export function ComboboxDemo({ tags, onSelect, selectedValue, error }) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState(selectedValue || "Select Tag...");
+  const [value, setValue] = React.useState(selectedValue || "Select Tag");
 
   /**
    * Handle Value Selection
@@ -37,7 +37,8 @@ export function ComboboxDemo({ tags, onSelect, selectedValue }) {
    * useEffect to update value when selectedValue prop changes
    */
   React.useEffect(() => {
-    setValue(selectedValue || "Select Tag...");
+    setValue(selectedValue || "Select Tag");
+    console.log(error);
   }, [selectedValue]);
 
   return (
@@ -45,11 +46,16 @@ export function ComboboxDemo({ tags, onSelect, selectedValue }) {
       <PopoverTrigger asChild>
         <Button
           variant="outline"
+          size="sm"
           role="combobox"
           aria-expanded={open}
-          className=" justify-start"
+          className={`text-sm justify-start ${
+            error
+              ? "border-danger text-danger hover:text-danger hover:bg-danger/10"
+              : ""
+          }`}
         >
-          <RiHashtag className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+          <RiHashtag size={16} className="mr-2 shrink-0 opacity-70" />
           {value}
         </Button>
       </PopoverTrigger>

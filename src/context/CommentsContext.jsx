@@ -48,23 +48,6 @@ export const CommentsContext = createContext();
 export const CommentsProvider = ({ children }) => {
   const [state, dispatch] = useReducer(commentsReducer, initialState);
 
-  // Define the actions to update the comments state
-  // const addComment = (comment) => {
-  //   dispatch({ type: "ADD_COMMENT", payload: comment });
-  // };
-
-  // const editComment = (comment) => {
-  //   dispatch({ type: "EDIT_COMMENT", payload: comment });
-  // };
-
-  // const fetchComments = (comments) => {
-  //   dispatch({ type: "FETCH_COMMENTS", payload: comments });
-  // };
-
-  // const deleteComment = (commentId) => {
-  //   dispatch({ type: "DELETE_COMMENT", payload: commentId });
-  // };
-
   return (
     <CommentsContext.Provider
       value={{

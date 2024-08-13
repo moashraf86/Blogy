@@ -33,6 +33,8 @@ import { removeBookmark } from "../../services/removeBookmark";
 
 export const PostItem = ({ post, handleShowModal }) => {
   const { currentUser, updateUser, signIn } = useContext(AuthContext);
+  const { id: userId } = currentUser || {};
+  const { id: postId } = post || {};
   const isGuest = currentUser?.isGuest;
   const isOwner = currentUser?.id === post.authorId;
   const isBookmarked = currentUser?.bookmarks.includes(post.id);
@@ -44,14 +46,15 @@ export const PostItem = ({ post, handleShowModal }) => {
    */
   const queryClient = useQueryClient(); // Correctly use the hook
   const refreshCache = () => {
-    queryClient.invalidateQueries(["bookmarksCount", post.id]);
-    queryClient.invalidateQueries(["bookmarks", currentUser.id]);
+    queryClient.invalidateQueries(["bookmarksCount", postId]);
+    queryClient.invalidateQueries(["bookmarks", userId]);
   };
 
   /**
    * Fetch Bookmarks Count
    */
-  const { data: bookmarksCountData, isLoading } = useFetchBookmarksCount(post);
+  const { data: bookmarksCountData, isLoading } =
+    useFetchBookmarksCount(postId);
 
   /**
    * Handle Add Bookmark
@@ -99,19 +102,21 @@ export const PostItem = ({ post, handleShowModal }) => {
 
   return (
     <div className="flex w-full sm:px-3 mb-6 sm:w-1/2 xl:w-1/3 2xl:w-1/4">
-      <div className="relative flex flex-col w-full rounded-md">
+      <div className="relative flex flex-col w-full rounded-t-lg overflow-clip">
         {/* Image */}
-        <div className="aspect-video max-h-[270px] bg-gradient-to-r from-zinc-400 to-zinc-800 rounded-md">
-          {post.image && (
-            <img
-              src={post.image}
-              alt={post.title}
-              className="h-full w-full object-cover rounded-md rounded-bl-none rounded-br-none"
-            />
-          )}
+        <div className="aspect-video max-h-[270px] bg-gradient-to-r from-zinc-400 to-zinc-800">
+          <Link to={`/post/${post.id}`}>
+            {post.image && (
+              <img
+                src={post.image}
+                alt={post.title}
+                className="h-full w-full object-cover rounded-md rounded-bl-none rounded-br-none"
+              />
+            )}
+          </Link>
         </div>
         {/* Content */}
-        <div className="flex flex-col gap-2 py-4 px-4 bg-muted/30 border border-t-0 border-border rounded-br-md rounded-bl-md">
+        <div className="flex flex-col gap-2 py-4 px-4 bg-muted/30 border border-t-0 border-border rounded-b-lg">
           {/* Tag */}
           {post.tag && (
             <div className="flex justify-between items-center">
@@ -121,12 +126,8 @@ export const PostItem = ({ post, handleShowModal }) => {
             </div>
           )}
           {/* Title */}
-          <h3 className="text-xl md:text-2xl text-primary font-bold capitalize">
-            <Link to={`/post/${post.id}`}>
-              {post.title.length > 30
-                ? `${post.title.substring(0, 30)}...`
-                : post.title}
-            </Link>
+          <h3 className="text-xl md:text-2xl text-primary font-bold capitalize text-nowrap overflow-clip text-ellipsis">
+            <Link to={`/post/${post.id}`}>{post.title}</Link>
           </h3>
           {/* Paragraph */}
           <p className="text-muted-foreground break-words">

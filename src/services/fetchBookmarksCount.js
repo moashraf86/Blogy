@@ -11,9 +11,9 @@ import { db } from "../utils/firebase";
  * @returns {Promise<number>} - The count of bookmarks for the specified post.
  */
 
-export const fetchBookmarksCount = async (post) => {
+export const fetchBookmarksCount = async (postId) => {
   // Reference to the post document in Firestore
-  const postRef = doc(db, "posts", post.id);
+  const postRef = doc(db, "posts", postId);
 
   // Get the post document snapshot
   const postSnap = await getDoc(postRef);

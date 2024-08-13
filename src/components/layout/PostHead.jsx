@@ -8,7 +8,7 @@ export const PostHead = ({ post }) => {
       {/* Post Tag */}
       {tag && (
         <div className="flex justify-between items-center mb-3">
-          <span className="bg-accent py-2 px-4 rounded-full text-muted-foreground text-xs font-medium uppercase tracking-widest">
+          <span className="bg-accent py-1 px-3 rounded-full text-muted-foreground text-xs font-medium uppercase tracking-widest">
             {tag}
           </span>
         </div>

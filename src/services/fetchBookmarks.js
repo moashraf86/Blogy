@@ -11,12 +11,12 @@ import { db } from "../utils/firebase";
  * @param {boolean} isGuest - Boolean indicating if the user is a guest.
  * @returns {Promise<Object[]>} - A query object for fetching the bookmarked posts.
  */
-export const fetchBookmarks = async (currentUser, isGuest) => {
+export const fetchBookmarks = async (userId, isGuest) => {
   // Return early if no user or if the user is a guest
-  if (!currentUser || isGuest) return;
+  if (!userId || isGuest) return;
 
   // Reference to the user's document in Firestore
-  const userRef = doc(db, "users", currentUser.id);
+  const userRef = doc(db, "users", userId);
 
   // Get the user's document snapshot
   const userSnap = await getDoc(userRef);
@@ -24,7 +24,7 @@ export const fetchBookmarks = async (currentUser, isGuest) => {
   // Extract the list of bookmarked post IDs
   const userBookmarks = userSnap.data()?.bookmarks || [];
 
-  // Create a query to fetch posts where the post ID is in the user's bookmarks
+  // Create a query to fetch posts where the post userId is in the user's bookmarks
   const bookmarksQuery = {
     collection: query(
       collection(db, "posts"),

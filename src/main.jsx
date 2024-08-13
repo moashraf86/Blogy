@@ -8,6 +8,7 @@ import { Bookmarks } from "./pages/Bookmarks.jsx";
 import { Posts } from "./pages/posts.jsx";
 import { MyPosts } from "./pages/MyPosts.jsx";
 import { UserProfile } from "./pages/UserProfile.jsx";
+import { NotFound } from "./pages/NotFound.jsx";
 import "remixicon/fonts/remixicon.css";
 import App from "./App.jsx";
 import "./index.css";
@@ -15,7 +16,7 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
-    errorElement: <div>Not Found</div>,
+    errorElement: <NotFound />,
     children: [
       { path: "/", element: <Posts /> },
       {

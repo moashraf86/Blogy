@@ -11,9 +11,9 @@ import { db } from "../utils/firebase";
  * @returns {Array<Object>} The list of fetched comments with their IDs.
  */
 
-export const fetchComments = async (post) => {
+export const fetchComments = async (postId) => {
   const commentsQuery = query(
-    collection(db, "posts", post.id, "comments"),
+    collection(db, "posts", postId, "comments"),
     orderBy("createdAt", "desc")
   );
   const commentsSnapshot = await getDocs(commentsQuery);

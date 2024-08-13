@@ -7,9 +7,9 @@ import { fetchComments } from "../services/fetchComments";
  * @param {Object} post - The post object containing the ID for fetching comments.
  * @returns {Object} - Result of the query, including comments data and query status.
  */
-export const useFetchComments = (post) => {
+export const useFetchComments = (postId) => {
   return useQuery({
-    queryKey: ["comments", post.id],
-    queryFn: () => fetchComments(post),
+    queryKey: ["comments", postId],
+    queryFn: () => fetchComments(postId),
   });
 };

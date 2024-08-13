@@ -6,10 +6,17 @@ import { RiErrorWarningLine } from "@remixicon/react";
 import { useFetchComments } from "../../hooks/useFetchComments";
 
 export const CommentList = ({ post, commentToEdit, handleDelete }) => {
+  // Get the post ID from the post object
+  const { id: postId } = post || {};
   /**
    * Custom Hook to fetch comments
    */
-  const { data: comments, isLoading, isError, error } = useFetchComments(post);
+  const {
+    data: comments,
+    isLoading,
+    isError,
+    error,
+  } = useFetchComments(postId);
 
   return (
     <div id="comments">
@@ -17,7 +24,7 @@ export const CommentList = ({ post, commentToEdit, handleDelete }) => {
         Comments ({comments?.length})
       </h3>
       {isLoading && (
-        <div className="flex flex-col gap-4 rounded-md bg-primary/10 p-4">
+        <div className="flex flex-col gap-4 rounded-lg bg-primary/10 p-4">
           <div className="flex items-center gap-2">
             <Skeleton className="w-8 h-8 rounded-full" />
             <Skeleton className="w-24 h-4" />

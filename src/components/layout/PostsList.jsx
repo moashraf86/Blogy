@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useContext, useState, lazy, Suspense } from "react";
-import { AuthContext } from "../../context/AuthContext";
+import { useState, lazy, Suspense } from "react";
 import { PostItem } from "./PostItem";
 import { Pagination } from "../shared/Pagination";
 import { Filter } from "../shared/Filter";
@@ -19,8 +18,6 @@ const ConfirmDeleteModal = lazy(() =>
 );
 
 export const PostsList = ({ title, postsQuery, alertMsg }) => {
-  const { currentUser } = useContext(AuthContext);
-  const isGuest = currentUser?.isGuest;
   const [showModal, setShowModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState(null);
   const [totalPosts, setTotalPosts] = useState(0);
@@ -71,12 +68,22 @@ export const PostsList = ({ title, postsQuery, alertMsg }) => {
     setShowModal(false);
   };
 
+  /**
+   * Handle Current Page
+   */
+  const handleCurrentPage = (page) => {
+    setCurrentPage(page);
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 10);
+  };
+
   return (
     <div className="flex flex-col gap-8 mt-6">
       <div className="container px-5 sm:px-8">
         <div className="flex flex-wrap items-center justify-between">
           <h2 className="text-2xl md:text-4xl font-bold">{title}</h2>
-          {currentUser && !isGuest && <Filter handleFilter={handleFilter} />}
+          <Filter handleFilter={handleFilter} />
         </div>
       </div>
       <div className="container px-5 flex justify-start flex-wrap">
@@ -109,21 +116,18 @@ export const PostsList = ({ title, postsQuery, alertMsg }) => {
             />
           ))}
         {!isLoading && !isError && !posts.length && (
-          <Alert variant="default" className="flex items-center gap-3">
+          <Alert variant="info" className="flex items-center gap-3">
             <span>
-              <RiInformationLine size={24} className="fill-primary" />
+              <RiInformationLine />
             </span>
             <AlertDescription>{alertMsg}</AlertDescription>
           </Alert>
         )}
         {isError && (
           <Alert variant="danger">
-            <RiErrorWarningLine
-              size={24}
-              className="fill-danger absolute top-[10px]"
-            />
-            <AlertTitle className="pl-8">Error</AlertTitle>
-            <AlertDescription className="pl-8">{error}</AlertDescription>
+            <RiErrorWarningLine />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
       </div>
@@ -131,7 +135,7 @@ export const PostsList = ({ title, postsQuery, alertMsg }) => {
         totalPosts={totalPosts}
         currentPage={currentPage}
         postsPerPage={postsPerPage}
-        setCurrentPage={setCurrentPage}
+        handleCurrentPage={handleCurrentPage}
       />
       {/* Confirm Delete Dialog */}
       <Suspense>

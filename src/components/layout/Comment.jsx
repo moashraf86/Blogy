@@ -13,7 +13,8 @@ import { getRelTime } from "../../utils/getRelTime";
 import { RiMore2Fill } from "@remixicon/react";
 
 export const Comment = ({ comment, commentToEdit, handleDelete }) => {
-  const { authorName, authorImage, authorId, content, createdAt } = comment;
+  const { authorName, authorImage, authorId, content, createdAt } =
+    comment || {};
   const { currentUser } = useContext(AuthContext);
   const isCommentOwner = currentUser?.id === authorId;
   const userName = authorName;
@@ -23,7 +24,7 @@ export const Comment = ({ comment, commentToEdit, handleDelete }) => {
   return (
     <div
       key={comment.id}
-      className="mb-4 p-4 bg-muted/30 border border-border rounded-md"
+      className="mb-4 p-4 bg-muted/30 border border-border rounded-lg"
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
@@ -37,8 +38,8 @@ export const Comment = ({ comment, commentToEdit, handleDelete }) => {
             <Link to={`/users/${authorId}`}>
               <p className="text-sm font-bold">{authorName}</p>
             </Link>
-            <span className="text-xs text-gray-500">•</span>
-            <p className="text-xs text-gray-500">{timeAgo}</p>
+            <span className="text-xs text-muted-foreground">•</span>
+            <p className="text-xs text-muted-foreground">{timeAgo}</p>
           </div>
         </div>
         {/* Edit/Delete Dropdown */}
@@ -58,7 +59,7 @@ export const Comment = ({ comment, commentToEdit, handleDelete }) => {
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="font-medium text-red-500 focus:text-red-500"
+                className="font-medium text-danger focus:text-danger"
                 onSelect={() => handleDelete(comment)}
               >
                 Delete
