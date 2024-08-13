@@ -7,11 +7,15 @@ import {
   signInAnonymously,
 } from "firebase/auth";
 import {
+  collection,
+  deleteDoc,
   doc,
   getDoc,
+  getDocs,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 
 // create a context for Authentication
@@ -38,6 +42,23 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, dispatch] = useReducer(currentUserReducer, null);
   const [loading, setLoading] = useState(false);
 
+  /**
+   * Detect if the Guest user after sign out
+   */
+  const deleteGuestUsers = async () => {
+    const querySnapshot = await getDocs(
+      collection(db, "users"),
+      where("isGuest", "==", true)
+    );
+    querySnapshot.forEach(async (doc) => {
+      const user = doc.data();
+      // check if the user is a guest and the user is inactive
+      if (user.isGuest && !user.isActive) {
+        await deleteDoc(doc.ref);
+      }
+    });
+  };
+
   useEffect(() => {
     // update the current user state when the user signs in or signs out
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -52,6 +73,7 @@ export const AuthProvider = ({ children }) => {
             email: user.email,
             photoURL: user.photoURL,
             id: user.uid,
+            createdAt: serverTimestamp(),
             lastLogin: serverTimestamp(),
             isActive: true,
             bookmarks: [],
@@ -69,17 +91,20 @@ export const AuthProvider = ({ children }) => {
           dispatch({ type: "SIGN_IN", payload: userSnap.data() });
           setLoading(false);
         }
-      } else {
-        if (currentUser) {
-          const userRef = doc(db, "users", currentUser.id);
-          await updateDoc(userRef, {
-            isActive: false,
-          });
-          dispatch({ type: "SIGN_OUT", payload: null });
-          setLoading(false);
-        }
       }
     });
+
+    /**
+     * - store the user data in local storage when the user signs in
+     * - remove the user data from local storage when the user signs out
+     *
+     **/
+    if (currentUser) {
+      localStorage.setItem("currentUser", JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem("currentUser");
+    }
+
     return () => unsubscribe();
   }, []);
 
@@ -99,10 +124,17 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     try {
       await auth.signOut();
-      dispatch({ type: "SIGN_OUT", payload: null });
+      if (currentUser) {
+        const userRef = doc(db, "users", currentUser.id);
+        await updateDoc(userRef, {
+          isActive: false,
+        });
+        deleteGuestUsers();
+      }
     } catch (error) {
       console.error(error);
     } finally {
+      dispatch({ type: "SIGN_OUT", payload: null });
       setLoading(false);
     }
   };
