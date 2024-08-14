@@ -89,6 +89,10 @@ const SelectContent = React.forwardRef(
             position === "popper" &&
               "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
           )}
+          ref={(ref) => {
+            if (!ref) return;
+            ref.ontouchend = (e) => e.preventDefault();
+          }}
         >
           {children}
         </SelectPrimitive.Viewport>
