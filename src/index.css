@@ -241,6 +241,9 @@
     .code-line {
       @apply text-zinc-100;
     }
+    .code-line .token.imports {
+      @apply text-[#ffa657];
+    }
     code {
       @apply bg-muted text-primary;
     }
