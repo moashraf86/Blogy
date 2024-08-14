@@ -89,6 +89,11 @@ export const AuthProvider = ({ children }) => {
           // get the user data from the database
           const newUserSnap = await getDoc(userRef);
           dispatch({ type: "SIGN_IN", payload: newUserSnap.data() });
+          // store the user data in local storage
+          localStorage.setItem(
+            "currentUser",
+            JSON.stringify(newUserSnap.data())
+          );
           setLoading(false);
         } else {
           await updateDoc(userRef, {
@@ -96,20 +101,21 @@ export const AuthProvider = ({ children }) => {
             isActive: true,
           });
           dispatch({ type: "SIGN_IN", payload: userSnap.data() });
+          // update the user data in local storage
+          localStorage.setItem(
+            "currentUser",
+            JSON.stringify({ ...userSnap.data(), isActive: true })
+          );
           setLoading(false);
         }
+      } else {
+        // if user is signed out, update the current user state to null
+        dispatch({ type: "SIGN_OUT", payload: null });
+        setLoading(false);
+        // remove the user data from local storage
+        localStorage.removeItem("currentUser");
       }
     });
-
-    /**
-     * - store the user data in local storage when the user signs in
-     * - remove the user data from local storage when the user signs out
-     **/
-    if (currentUser) {
-      localStorage.setItem("currentUser", JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem("currentUser");
-    }
 
     return () => unsubscribe();
   }, []);
@@ -130,7 +136,6 @@ export const AuthProvider = ({ children }) => {
       }
       // sign in with Google
       await signInWithPopup(auth, provider);
-      // sign in with Google
     } catch (error) {
       console.error(error);
     } finally {
@@ -152,9 +157,6 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error(error);
-    } finally {
-      dispatch({ type: "SIGN_OUT", payload: null });
-      setLoading(false);
     }
   };
 
@@ -169,6 +171,8 @@ export const AuthProvider = ({ children }) => {
       }
       // sign in anonymously
       await signInAnonymously(auth);
+      // store the user data in local storage
+      localStorage.setItem("currentUser", JSON.stringify(currentUser));
     } catch (error) {
       console.error(error);
     }
