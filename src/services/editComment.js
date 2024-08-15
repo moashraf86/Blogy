@@ -11,8 +11,7 @@ import { db } from "../utils/firebase";
  * @param {Function} commentData.refetchComments - Function to refetch comments after editing.
  */
 export const editComment = async (commentData) => {
-  const { comment, post, currentUser, commentToEdit, refetchComments } =
-    commentData;
+  const { comment, post, currentUser, commentToEdit } = commentData;
 
   // Reference to the comment document.
   const commentRef = doc(db, "posts", post?.id, "comments", commentToEdit.id);
@@ -25,10 +24,10 @@ export const editComment = async (commentData) => {
     authorName: currentUser.name,
     authorImage: currentUser.photoURL,
     postId: post?.id,
+    edited: true,
     createdAt: serverTimestamp(),
   };
 
-  // Update the comment and refetch comments.
+  // Update the comment
   await updateDoc(commentRef, data);
-  refetchComments();
 };

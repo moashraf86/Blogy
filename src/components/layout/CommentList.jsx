@@ -5,7 +5,12 @@ import { Alert, AlertDescription } from "../ui/alert";
 import { RiErrorWarningLine } from "@remixicon/react";
 import { useFetchComments } from "../../hooks/useFetchComments";
 
-export const CommentList = ({ post, commentToEdit, handleDelete }) => {
+export const CommentList = ({
+  post,
+  commentToEdit,
+  handleEdit,
+  handleDelete,
+}) => {
   // Get the post ID from the post object
   const { id: postId } = post || {};
   /**
@@ -50,6 +55,7 @@ export const CommentList = ({ post, commentToEdit, handleDelete }) => {
             key={comment.id}
             comment={comment}
             commentToEdit={commentToEdit}
+            handleEdit={handleEdit}
             handleDelete={handleDelete}
           />
         ))}

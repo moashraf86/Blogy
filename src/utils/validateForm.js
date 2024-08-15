@@ -96,10 +96,11 @@ export const validateForm = ({
 export const validateComment = (comment, setError) => {
   if (!comment) {
     setError("Comment is required");
-    return;
+    return false;
   } else if (comment.trim() === "") {
     setError("Comment cannot be empty");
-    return;
+    return false;
   }
   setError(null);
+  return true;
 };

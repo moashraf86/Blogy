@@ -12,19 +12,28 @@ import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { getRelTime } from "../../utils/getRelTime";
 import { RiMore2Fill } from "@remixicon/react";
 
-export const Comment = ({ comment, commentToEdit, handleDelete }) => {
+export const Comment = ({
+  comment,
+  commentToEdit,
+  handleEdit,
+  handleDelete,
+}) => {
   const { authorName, authorImage, authorId, content, createdAt } =
     comment || {};
   const { currentUser } = useContext(AuthContext);
   const isCommentOwner = currentUser?.id === authorId;
   const userName = authorName;
-  const date = new Date(createdAt.seconds * 1000);
+  const date = new Date(createdAt?.seconds * 1000) || {};
   const timeAgo = getRelTime(date);
   const [firstName, lastName] = userName.split(" ") || "";
+  const isCommentEditing = commentToEdit?.id === comment.id;
+
   return (
     <div
       key={comment.id}
-      className="mb-4 p-4 bg-muted/30 border border-border rounded-lg"
+      className={`mb-4 p-4 bg-muted/30 border border-border rounded-lg ${
+        isCommentEditing ? "border-1 border-warning/70" : ""
+      }`}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
@@ -39,11 +48,17 @@ export const Comment = ({ comment, commentToEdit, handleDelete }) => {
               <p className="text-sm font-bold">{authorName}</p>
             </Link>
             <span className="text-xs text-muted-foreground">•</span>
-            <p className="text-xs text-muted-foreground">{timeAgo}</p>
+            {comment.edited ? (
+              <p className="text-xs text-muted-foreground">
+                Edited {timeAgo === "Just now" ? timeAgo : timeAgo + " ago"}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">{timeAgo}</p>
+            )}
           </div>
         </div>
         {/* Edit/Delete Dropdown */}
-        {isCommentOwner && (
+        {isCommentOwner && !isCommentEditing && (
           <DropdownMenu>
             <DropdownMenuTrigger
               className="text-primary cursor-pointer p-1"
@@ -54,7 +69,7 @@ export const Comment = ({ comment, commentToEdit, handleDelete }) => {
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 className="font-medium"
-                onSelect={() => commentToEdit(comment)}
+                onSelect={() => handleEdit(comment)}
               >
                 Edit
               </DropdownMenuItem>
@@ -66,6 +81,12 @@ export const Comment = ({ comment, commentToEdit, handleDelete }) => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+        )}
+        {/* Now Editing indicator */}
+        {isCommentOwner && isCommentEditing && (
+          <span>
+            <i className="text-xs text-warning">Editing</i>
+          </span>
         )}
       </div>
       <p
