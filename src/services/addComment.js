@@ -1,6 +1,7 @@
 import {
   collection,
   doc,
+  getDoc,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -36,9 +37,11 @@ export const addComment = async (commentData) => {
 
   // Reference to the post document.
   const postRef = doc(db, "posts", post?.id);
+  // get the post document snapshot.
+  const postSnap = await getDoc(postRef);
 
   // Increment the post's comment count.
   await updateDoc(postRef, {
-    commentsCount: post.commentsCount + 1,
+    commentsCount: postSnap.data.commentsCount + 1,
   });
 };

@@ -16,19 +16,25 @@ export const Comments = ({ post }) => {
   const [commentToEdit, setCommentToEdit] = useState(null);
   const [error, setError] = useState(null);
   const formRef = useRef(null);
-
+  const { id: postId } = post || {};
+  const commentHasChanged = commentToEdit?.content !== comment;
+  const [isSubmitted, setIsSubmitted] = useState(false);
   /**
    * Refetch the comments after Adding, Editing or Deleting a new comment
    */
   const queryClient = useQueryClient();
   const refetchComments = () => {
-    queryClient.invalidateQueries(["comments", post.id]);
+    queryClient.invalidateQueries(["comments", postId]);
   };
   /**
    * Handle Change Comment
    */
   const handleChangeComment = (e) => {
     setComment(e.target.value);
+    // validate comment field
+    if (isSubmitted) {
+      validateComment(e.target.value, setError);
+    }
   };
 
   /**
@@ -37,7 +43,11 @@ export const Comments = ({ post }) => {
   const handleWriteComment = (e) => {
     e.preventDefault(); // prevent default form submission
 
-    validateComment(comment, setError); // validate comment field
+    setIsSubmitted(true);
+    // validate comment field
+    if (!validateComment(comment, setError)) {
+      return;
+    }
 
     addComment({ comment, post, currentUser, setError }); // add comment to the post
 
@@ -51,8 +61,11 @@ export const Comments = ({ post }) => {
    */
   const handleEditComment = (e) => {
     e.preventDefault(); // prevent default form submission
-
-    validateComment(comment, setError); // validate comment field
+    setIsSubmitted(true);
+    // validate comment field
+    if (!validateComment(comment, setError)) {
+      return;
+    }
 
     editComment({ comment, post, currentUser, commentToEdit }); // edit the comment
 
@@ -84,11 +97,22 @@ export const Comments = ({ post }) => {
     if (commentToEdit === null) {
       handleWriteComment(e);
     } else {
+      //check if the user changes the comment content or not
+      if (commentToEdit.content === comment) {
+        return;
+      }
       handleEditComment(e);
       setCommentToEdit(null);
     }
   };
 
+  /**
+   * Handle Cancel Edit
+   */
+  const handleCancelEdit = () => {
+    setCommentToEdit(null);
+    setComment("");
+  };
   /**
    * Handle Delete Comment
    */
@@ -104,13 +128,18 @@ export const Comments = ({ post }) => {
         post={post}
         handleSubmit={handleSubmit}
         handleChangeComment={handleChangeComment}
+        handleCancelEdit={handleCancelEdit}
         currentUser={currentUser}
         error={error}
         formRef={formRef}
+        buttonLabel={commentToEdit ? "Edit" : "Write"}
+        commentToEdit={commentToEdit}
+        commentHasChanged={commentHasChanged}
       />
       <CommentList
         post={post}
-        commentToEdit={handleToEdit}
+        commentToEdit={commentToEdit}
+        handleEdit={handleToEdit}
         handleDelete={handleDeleteComment}
       />
     </>

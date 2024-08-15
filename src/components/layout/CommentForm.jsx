@@ -3,10 +3,14 @@ import { Button } from "../ui/button";
 export const CommentForm = ({
   handleChangeComment,
   handleSubmit,
+  handleCancelEdit,
   content,
   currentUser,
   error,
   formRef,
+  buttonLabel,
+  commentToEdit,
+  commentHasChanged,
 }) => {
   const isGuest = currentUser?.isGuest;
   return (
@@ -31,14 +35,29 @@ export const CommentForm = ({
           disabled={isGuest || !currentUser}
         ></textarea>
         {error && <p className="text-danger">{error}</p>}
-        <Button
-          size="lg"
-          type="submit"
-          className="self-end text-base"
-          disabled={isGuest || !currentUser}
-        >
-          Send
-        </Button>
+        <div className="flex items-center gap-3 justify-end">
+          {commentToEdit ? (
+            <Button
+              label="Cancel Editing"
+              variant="outline"
+              size="lg"
+              type="button"
+              className="self-end text-base"
+              onClick={handleCancelEdit}
+            >
+              Cancel
+            </Button>
+          ) : null}
+          <Button
+            size="lg"
+            type="submit"
+            className="self-end text-base"
+            disabled={isGuest || !currentUser || !commentHasChanged}
+            label={buttonLabel === "Write" ? "Write a Comment" : "Edit Comment"}
+          >
+            {buttonLabel}
+          </Button>
+        </div>
       </form>
     </div>
   );
