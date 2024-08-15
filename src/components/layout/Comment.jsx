@@ -48,17 +48,14 @@ export const Comment = ({
               <p className="text-sm font-bold">{authorName}</p>
             </Link>
             <span className="text-xs text-muted-foreground">•</span>
-            {comment.edited ? (
-              <p className="text-xs text-muted-foreground">
-                Edited {timeAgo === "Just now" ? timeAgo : timeAgo + " ago"}
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground">{timeAgo}</p>
-            )}
+            <p className="text-xs text-muted-foreground">{timeAgo}</p>
+            {comment.edited && !isCommentOwner ? (
+              <span className="text-xs text-muted-foreground"> (Edited)</span>
+            ) : null}
           </div>
         </div>
         {/* Edit/Delete Dropdown */}
-        {isCommentOwner && !isCommentEditing && (
+        {isCommentOwner && !isCommentEditing ? (
           <DropdownMenu>
             <DropdownMenuTrigger
               className="text-primary cursor-pointer p-1"
@@ -81,13 +78,13 @@ export const Comment = ({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        )}
+        ) : null}
         {/* Now Editing indicator */}
-        {isCommentOwner && isCommentEditing && (
+        {isCommentOwner && isCommentEditing ? (
           <span>
             <i className="text-xs text-warning">Editing</i>
           </span>
-        )}
+        ) : null}
       </div>
       <p
         dir="auto"
