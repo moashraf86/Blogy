@@ -10,11 +10,11 @@ import {
   RiImageFill,
   RiInformationLine,
 } from "@remixicon/react";
-import { Editor } from "./Editor";
 import { ComboboxDemo } from "../ui/combo-box";
 import { tags } from "../../utils/tags";
 import { Button } from "../ui/button";
 import { SignInModal } from "../shared/SignInModal";
+import YooptaTextEditor from "./YooptaEditor";
 export const Form = ({
   title,
   content,
@@ -78,7 +78,7 @@ export const Form = ({
       ) : null}
       {currentUser ? (
         <div className="flex justify-center items-center max-w-4xl mx-auto">
-          <div className="flex flex-col w-full bg-background rounded-md p-6 gap-4 mt-6">
+          <div className="flex flex-col w-full bg-background rounded-md py-6 px-6 md:px-16 gap-4 mt-6">
             <form
               onSubmit={onsubmit}
               className="flex flex-col gap-4 items-start"
@@ -171,7 +171,11 @@ export const Form = ({
                   value={title}
                   type="text"
                   placeholder="Add title"
-                  onChange={(e) => handleChange(e)}
+                  onChange={(e) =>
+                    handleChange({
+                      target: { name: "title", value: e.target.value },
+                    })
+                  }
                 />
                 {titleError.hasError && (
                   <p className="text-sm text-danger">{titleError.message}</p>
@@ -218,12 +222,13 @@ export const Form = ({
                 </div>
               )}
               <div className="flex flex-col gap-1 self-stretch">
-                <Editor
-                  name="title"
+                <YooptaTextEditor
+                  onChange={(content) =>
+                    handleChange({
+                      target: { name: "content", value: content },
+                    })
+                  }
                   value={content}
-                  onChange={(e) => {
-                    handleChange({ target: { name: "content", value: e } });
-                  }}
                 />
                 {contentError.hasError && (
                   <p className="text-sm text-danger">{contentError.message}</p>
