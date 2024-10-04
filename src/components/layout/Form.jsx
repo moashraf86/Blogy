@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Switch } from "../ui/switch";
@@ -28,6 +28,7 @@ export const Form = ({
   onSelect,
   handleImageChange,
   handleRemoveImage,
+  handleToggleImageMode,
   handleChange,
   handleSelectRandomImage,
   isImageRequired,
@@ -38,7 +39,8 @@ export const Form = ({
   const isGuest = currentUser?.isGuest;
   const [showModal, setShowModal] = useState(false);
   const [charsCount, setCharsCount] = useState(0);
-  const [imageInset, setImageInset] = useState(true);
+  const titleRef = useRef(null);
+  const descriptionRef = useRef(null);
   /**
    * Hide the alert message
    */
@@ -72,9 +74,11 @@ export const Form = ({
    * Auto resize the textarea
    */
 
-  const autoResize = (e) => {
-    e.target.style.height = "auto";
-    e.target.style.height = e.target.scrollHeight + "px";
+  const autoResize = (ref) => {
+    if (ref.current) {
+      ref.current.style.height = "auto";
+      ref.current.style.height = ref.current.scrollHeight + "px";
+    }
   };
 
   /**
@@ -88,13 +92,12 @@ export const Form = ({
   };
 
   /**
-   * Change the image inset mode
-   * @returns {void}
-   * Toggles the image inset mode
+   * Fire autoResize function when the component mounts
    */
-  const handleChangeMode = () => {
-    setImageInset((prev) => !prev);
-  };
+  useEffect(() => {
+    autoResize(titleRef);
+    autoResize(descriptionRef);
+  }, []);
   return (
     <>
       {/* If user is a guest, show a message to log in with Google to publish posts */}
@@ -223,6 +226,7 @@ export const Form = ({
               {/* Post Title */}
               <div className="flex flex-col gap-1 self-stretch px-6 md:px-16">
                 <textarea
+                  ref={titleRef}
                   name="title"
                   id="title"
                   className="w-full p-2 text-primary bg-transparent rounded-md text-2xl md:text-4xl font-bold focus-visible:outline-none resize-none overflow-hidden"
@@ -230,7 +234,7 @@ export const Form = ({
                   type="text"
                   rows={1}
                   placeholder="Title"
-                  onInput={(e) => autoResize(e)}
+                  onInput={() => autoResize(titleRef)}
                   onChange={(e) =>
                     handleChange({
                       target: { name: "title", value: e.target.value },
@@ -244,6 +248,7 @@ export const Form = ({
               {/* Post Description */}
               <div className="flex flex-col gap-1 self-stretch px-6 md:px-16">
                 <textarea
+                  ref={descriptionRef}
                   name="description"
                   id="description"
                   autoComplete="off"
@@ -252,7 +257,7 @@ export const Form = ({
                   type="text"
                   rows={1}
                   placeholder="Description"
-                  onInput={(e) => autoResize(e)}
+                  onInput={() => autoResize(descriptionRef)}
                   onChange={(e) =>
                     handleChange({
                       target: { name: "description", value: e.target.value },
@@ -269,20 +274,20 @@ export const Form = ({
               {image.src && (
                 <div
                   className={`relative overflow-clip self-stretch ${
-                    imageInset ? "px-6 md:px-16" : "px-6 lg:px-0"
+                    image.isInset ? "px-6 md:px-16" : "px-6 lg:px-0"
                   }`}
                 >
                   <div className="relative after:absolute after:content-[''] after:inset-0 after:bg-black/50 after:rounded-md after:z-1 after:hidden hover:after:block group">
                     {/*Action  buttons */}
                     <div className="items-center gap-2 absolute top-4 right-4 z-10 bg-[#262626]/25 rounded-full py-2 px-5 backdrop-blur-sm hidden group-hover:flex">
-                      {imageInset ? (
+                      {image.isInset ? (
                         <Button
                           type="button"
                           size="icon"
                           variant="ghost"
                           className="border-none size-8"
                           title="Full Screen"
-                          onClick={handleChangeMode}
+                          onClick={handleToggleImageMode}
                         >
                           <RiFullscreenLine className="fill-white" />
                         </Button>
@@ -293,7 +298,7 @@ export const Form = ({
                           variant="ghost"
                           title="Full Screen Exit"
                           className="border-none size-8"
-                          onClick={handleChangeMode}
+                          onClick={handleToggleImageMode}
                         >
                           <RiFullscreenExitLine className="fill-white" />
                         </Button>
@@ -341,6 +346,10 @@ export const Form = ({
                       className="w-full aspect-video object-cover rounded-md"
                       src={image.src}
                       alt={image.alt}
+                      onError={(e) => {
+                        e.target.src = "https://via.placeholder.com/800x400";
+                        e.target.alt = "Post image not found";
+                      }}
                     />
                   </div>
                 </div>

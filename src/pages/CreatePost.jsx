@@ -95,6 +95,14 @@ export const CreatePost = () => {
   };
 
   /**
+   * Handle Toggle Image Mode
+   * @param {Boolean} isInset - True if image is inset
+   */
+  const handleToggleImageMode = () => {
+    setImage((prevImage) => ({ ...prevImage, isInset: !prevImage.isInset }));
+  };
+
+  /**
    * Handle Create Post
    */
   const handleCreatePost = (e) => {
@@ -130,11 +138,7 @@ export const CreatePost = () => {
       isGuest,
     });
 
-    setImage({
-      src: null,
-      alt: "",
-      isInset: true,
-    }); // Reset the image state
+    handleRemoveImage; // Remove the selected image
     localStorage.removeItem("formData"); // Remove formData from localStorage
     // Redirect to the home page after creating the post
     setTimeout(() => {
@@ -156,6 +160,7 @@ export const CreatePost = () => {
       onSelect={(e) => handleChange(e)}
       handleImageChange={handleImageChange}
       handleRemoveImage={handleRemoveImage}
+      handleToggleImageMode={handleToggleImageMode}
       handleChange={handleChange}
       handleSelectRandomImage={() => setIsImageRequired(!isImageRequired)}
       isImageRequired={isImageRequired}
