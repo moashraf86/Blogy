@@ -269,6 +269,10 @@
   @apply text-lg;
 }
 
+.yoopta-placeholder:after {
+  @apply text-muted-foreground;
+}
+
 .yoopta-block-actions-plus,
 .yoopta-block-actions-drag {
   @apply text-primary/50;
