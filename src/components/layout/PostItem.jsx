@@ -106,10 +106,10 @@ export const PostItem = ({ post, handleShowModal }) => {
         {/* Image */}
         <div className="aspect-video max-h-[270px] bg-gradient-to-r from-zinc-400 to-zinc-800">
           <Link to={`/post/${post.id}`}>
-            {post.image && (
+            {post.image.src && (
               <img
-                src={post.image}
-                alt={post.title}
+                src={post.image.src}
+                alt={post.image.alt}
                 className="h-full w-full object-cover rounded-md rounded-bl-none rounded-br-none"
               />
             )}
@@ -129,11 +129,13 @@ export const PostItem = ({ post, handleShowModal }) => {
           <h3 className="text-xl md:text-2xl text-primary font-bold capitalize text-nowrap overflow-clip text-ellipsis">
             <Link to={`/post/${post.id}`}>{post.title}</Link>
           </h3>
-          {/* Paragraph */}
+          {/* description */}
           <p className="text-muted-foreground break-words">
-            {post.content.length > 150
-              ? `${post.content.substring(0, 150)}...`
-              : post.content}
+            {post.description
+              ? post.description.length > 150
+                ? `${post.description.substring(0, 150)}...`
+                : post.description
+              : "No description"}
           </p>
           {/* Footer */}
           <div className="modal relative flex justify-end items-center gap-1 mt-2">
