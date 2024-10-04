@@ -1,3 +1,9 @@
+import {
+  validateTag,
+  validateTitle,
+  validateDescription,
+  validateContent,
+} from "./validateForm";
 /**
  * Handle form change for Create and Edit Post
  */
@@ -7,20 +13,33 @@ export const handleFormChange = (
   setFormData,
   isSubmitted,
   errors,
-  setErrors,
-  validateTitle,
-  validateContent,
-  validateTag,
-  markdownToPlainText
+  setErrors
 ) => {
   const { name, value } = e.target;
-  setFormData({ ...formData, [name]: value });
+
+  setFormData((pervData) => ({
+    ...pervData,
+    [name]: value,
+  }));
+
   if (isSubmitted) {
-    let validationErrors = errors;
-    if (name === "title") validationErrors.title = validateTitle(value);
-    if (name === "content")
-      validationErrors.content = validateContent(markdownToPlainText(value));
-    if (name === "tag") validationErrors.tag = validateTag(value);
+    let validationErrors = { ...errors };
+    switch (name) {
+      case "title":
+        validationErrors.title = validateTitle(value);
+        break;
+      case "description":
+        validationErrors.description = validateDescription(value);
+        break;
+      case "content":
+        validationErrors.content = validateContent(value);
+        break;
+      case "tag":
+        validationErrors.tag = validateTag(value);
+        break;
+      default:
+        break;
+    }
     setErrors(validationErrors);
   }
 };
