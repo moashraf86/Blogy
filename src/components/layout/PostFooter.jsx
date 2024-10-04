@@ -107,7 +107,7 @@ export const PostFooter = ({ post, comments }) => {
   };
 
   return (
-    <div className="flex justify-between items-center py-3 my-4 border-t border-b border-border">
+    <div className="flex justify-between items-center py-3 px-6 my-4 border-t border-b border-border">
       <div className="flex items-center gap-2">
         <Button variant="outline" size="icon" className="overflow-clip">
           <Avatar className="flex w-full h-full items-center justify-center">

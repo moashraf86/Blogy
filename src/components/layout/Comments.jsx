@@ -122,7 +122,7 @@ export const Comments = ({ post }) => {
   };
 
   return (
-    <>
+    <div className="px-6 md:px-10">
       <CommentForm
         content={comment}
         post={post}
@@ -142,6 +142,6 @@ export const Comments = ({ post }) => {
         handleEdit={handleToEdit}
         handleDelete={handleDeleteComment}
       />
-    </>
+    </div>
   );
 };
