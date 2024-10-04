@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import YooptaEditor, { createYooptaEditor } from "@yoopta/editor";
 import Paragraph from "@yoopta/paragraph";
 import Blockquote from "@yoopta/blockquote";
@@ -21,6 +21,7 @@ import {
   Strike,
   Highlight,
 } from "@yoopta/marks";
+import { calcContentChars } from "../../utils/calcContentChars";
 
 // Editor marks configuration
 const MARKS = [Bold, Italic, CodeMark, Underline, Strike, Highlight];
@@ -84,11 +85,13 @@ const TOOLS = {
 };
 
 export default function YooptaTextEditor({
-  value,
+  defaultValue,
   onChange,
   readOnly = false,
+  handleCharCount,
 }) {
   const editor = useMemo(() => createYooptaEditor(), []);
+  const selectionRef = useRef(null);
 
   /**
    * Editor component style
@@ -108,24 +111,35 @@ export default function YooptaTextEditor({
 
   useEffect(() => {
     editor.on("change", handleChange);
+    /**
+     * Handle the character count
+     * @param {string} content - result of calcContentChars function which is the content length
+     * @returns {void}
+     * Sets the character count state to the length of the content in Form.jsx
+     */
+    if (handleCharCount) {
+      const charLength = calcContentChars(defaultValue).length;
+      handleCharCount(charLength);
+    }
 
     return () => {
       editor.off("change", handleChange);
     };
-  }, [editor]);
+  }, [editor, defaultValue]);
 
   return (
-    <>
+    <div className="pb-[40px] flex justify-center" ref={selectionRef}>
       <YooptaEditor
         style={editorStyle}
         editor={editor}
         plugins={plugins}
         tools={TOOLS}
         marks={MARKS}
-        autofocus
-        value={value}
+        autofocus={false}
+        value={defaultValue}
         readOnly={readOnly}
+        selectionBoxRoot={selectionRef}
       />
-    </>
+    </div>
   );
 }
