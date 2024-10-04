@@ -5,7 +5,7 @@ import { createYooptaEditor } from "@yoopta/editor";
 
 export const PostBody = ({ post }) => {
   // destructure post object to get image, title, and content
-  const { image, title, content } = post;
+  const { image, content } = post;
   // convert content from string to normal object
   const contentParsed = JSON.parse(content);
 
@@ -15,13 +15,30 @@ export const PostBody = ({ post }) => {
   return (
     <>
       {/* Post Image */}
-      <div className="aspect-video bg-gradient-to-r from-zinc-400 to-zinc-800 rounded-lg overflow-clip mb-6">
-        {image && (
-          <img src={image} alt={title} className="h-full w-full object-cover" />
-        )}
-      </div>
+      {image && (
+        <div
+          className={`w-full mb-6 rounded-xl overflow-clip ${
+            image.isInset
+              ? "px-6 md:px-10"
+              : "px-6 md:px-0 md:rounded-none lg:rounded-xl"
+          }`}
+        >
+          <img
+            src={image.src}
+            alt={image.alt}
+            className={`relative w-full aspect-video object-cover rounded-xl ${
+              image.isInset ? "md:rounded-2xl" : "md:rounded-none lg:rounded-xl"
+            }`}
+            onError={(e) => {
+              e.target.src = "https://via.placeholder.com/800x450";
+              e.target.alt = "Image not found";
+            }}
+          />
+        </div>
+      )}
+
       {/* Post Content */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 px-6 md:px-10">
         <RichEditor editor={editor} defaultValue={contentParsed} readOnly />
       </div>
     </>

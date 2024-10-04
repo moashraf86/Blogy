@@ -91,7 +91,7 @@ export const CreatePost = () => {
    * Remove the selected image
    */
   const handleRemoveImage = () => {
-    setImage({ src: null, isInset: true });
+    setImage({ src: null, alt: "", isInset: true });
   };
 
   /**
