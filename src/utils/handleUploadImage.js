@@ -10,7 +10,7 @@ export const handleUploadImage = ({
   image,
   isImageRequired = true,
 }) => {
-  const file = e.target.files[0] || image;
+  const file = e.target.files[0] || image.src;
   const validationErrors = { ...errors };
   validationErrors.image = validateImage(file, isImageRequired);
   setErrors(validationErrors);
@@ -18,6 +18,11 @@ export const handleUploadImage = ({
   if (file && file.size < 1000000) {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onloadend = () => setImage(reader.result);
+    reader.onloadend = () =>
+      setImage({
+        src: reader.result,
+        alt: file.name,
+        isInset: true,
+      });
   }
 };
