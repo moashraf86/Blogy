@@ -7,6 +7,8 @@ import {
   RiCloseLine,
   RiDeleteBinLine,
   RiEditBoxLine,
+  RiFullscreenExitLine,
+  RiFullscreenLine,
   RiImageFill,
   RiInformationLine,
 } from "@remixicon/react";
@@ -36,6 +38,7 @@ export const Form = ({
   const isGuest = currentUser?.isGuest;
   const [showModal, setShowModal] = useState(false);
   const [charsCount, setCharsCount] = useState(0);
+  const [imageInset, setImageInset] = useState(true);
   /**
    * Hide the alert message
    */
@@ -54,17 +57,16 @@ export const Form = ({
   /**
    * Check if the form is ready to be submitted
    */
-  const notReadyForSubmit =
-    !title ||
-    !description ||
-    !content ||
-    !tag ||
-    (isImageRequired && !image) ||
+  const hasEmptyFields = !title || !description || !content || !tag;
+  const hasErrors =
     titleError.hasError ||
     descriptionError.hasError ||
     contentError.hasError ||
     tagError.hasError ||
     imageError.hasError;
+  const isImageMissing = isImageRequired && !image.src;
+
+  const notReadyForSubmit = hasEmptyFields || hasErrors || isImageMissing;
 
   /**
    * Auto resize the textarea
@@ -85,6 +87,14 @@ export const Form = ({
     setCharsCount(value);
   };
 
+  /**
+   * Change the image inset mode
+   * @returns {void}
+   * Toggles the image inset mode
+   */
+  const handleChangeMode = () => {
+    setImageInset((prev) => !prev);
+  };
   return (
     <>
       {/* If user is a guest, show a message to log in with Google to publish posts */}
@@ -117,12 +127,12 @@ export const Form = ({
       ) : null}
       {currentUser ? (
         <div className="flex justify-center items-center max-w-4xl mx-auto">
-          <div className="flex flex-col w-full bg-background rounded-md py-6 px-6 md:px-16 gap-4 mt-6">
+          <div className="flex flex-col w-full bg-background rounded-md py-6 gap-4 mt-6">
             <form
               onSubmit={onsubmit}
               className="flex flex-col gap-4 items-start"
             >
-              <div className="flex flex-col items-start sm:flex-row sm:items-center gap-3 w-full">
+              <div className="flex flex-col items-start sm:flex-row sm:items-center gap-3 w-full px-6 md:px-16">
                 <div className="flex flex-col gap-1">
                   <ComboboxDemo
                     onSelect={onSelect}
@@ -133,7 +143,7 @@ export const Form = ({
                 </div>
                 <div className="flex flex-col gap-1">
                   <div className="flex flex-row items-center gap-2 flex-wrap">
-                    {!image && isImageRequired && (
+                    {!image.src && isImageRequired && (
                       <Button
                         asChild
                         variant="outline"
@@ -173,13 +183,13 @@ export const Form = ({
                         </label>
                       </Button>
                     )}
-                    {!image && isImageRequired && (
+                    {!image.src && isImageRequired && (
                       <p className="text-sm uppercase text-center text-zinc-400">
                         or
                       </p>
                     )}
                     {/* Select Random image */}
-                    {!image && (
+                    {!image.src && (
                       <div className="flex gap-2 items-center ">
                         <Switch
                           aria-label="Select random image instead"
@@ -201,17 +211,17 @@ export const Form = ({
                 {/* Publish Button */}
                 <div className="fixed bottom-0 left-0 right-0 bg-background z-20 py-3 px-6 border-t border-border shadow-sm flex flex-1 justify-end md:static md:p-0 md:border-none md:shadow-none md:bg-none">
                   <Button
-                    disabled={notReadyForSubmit}
+                    size="lg"
                     type="submit"
                     className="disabled:opacity-20"
-                    size="lg"
+                    disabled={notReadyForSubmit}
                   >
                     {isGuest ? "Save to Drafts" : "Publish"}
                   </Button>
                 </div>
               </div>
               {/* Post Title */}
-              <div className="flex flex-col gap-1 self-stretch">
+              <div className="flex flex-col gap-1 self-stretch px-6 md:px-16">
                 <textarea
                   name="title"
                   id="title"
@@ -219,7 +229,7 @@ export const Form = ({
                   value={title}
                   type="text"
                   rows={1}
-                  placeholder="Add title"
+                  placeholder="Title"
                   onInput={(e) => autoResize(e)}
                   onChange={(e) =>
                     handleChange({
@@ -232,7 +242,7 @@ export const Form = ({
                 )}
               </div>
               {/* Post Description */}
-              <div className="flex flex-col gap-1 self-stretch">
+              <div className="flex flex-col gap-1 self-stretch px-6 md:px-16">
                 <textarea
                   name="description"
                   id="description"
@@ -241,7 +251,7 @@ export const Form = ({
                   value={description}
                   type="text"
                   rows={1}
-                  placeholder="Add description"
+                  placeholder="Description"
                   onInput={(e) => autoResize(e)}
                   onChange={(e) =>
                     handleChange({
@@ -256,46 +266,86 @@ export const Form = ({
                 )}
               </div>
               {/* Display the image */}
-              {image && (
-                <div className="relative rounded-md overflow-clip self-stretch">
-                  <div className="group absolute top-0 left-0 bottom-0 right-0 flex items-center justify-center gap-4 hover:bg-zinc-800/60">
-                    <label
-                      tabIndex="0"
-                      htmlFor="image"
-                      className="hidden group-hover:flex w-12 h-12 cursor-pointer items-center justify-center focus:outline-none focus:ring-2 focus:ring-zinc-50 rounded-md"
-                      title="Edit image"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          document.getElementById("image").click();
-                        }
-                      }}
-                    >
-                      <RiEditBoxLine size={30} className="fill-white" />
-                      <input
-                        id="image"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        hidden
-                      />
-                    </label>
-                    <button
-                      onClick={handleRemoveImage}
-                      className="hidden group-hover:inline w-12 h-12 focus:outline-none focus:ring-2 focus:ring-zinc-50 rounded-md"
-                      title="Delete Image"
-                    >
-                      <RiDeleteBinLine size={30} className="fill-white" />
-                    </button>
+              {image.src && (
+                <div
+                  className={`relative overflow-clip self-stretch ${
+                    imageInset ? "px-6 md:px-16" : "px-6 lg:px-0"
+                  }`}
+                >
+                  <div className="relative after:absolute after:content-[''] after:inset-0 after:bg-black/50 after:rounded-md after:z-1 after:hidden hover:after:block group">
+                    {/*Action  buttons */}
+                    <div className="items-center gap-2 absolute top-4 right-4 z-10 bg-[#262626]/25 rounded-full py-2 px-5 backdrop-blur-sm hidden group-hover:flex">
+                      {imageInset ? (
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="border-none size-8"
+                          title="Full Screen"
+                          onClick={handleChangeMode}
+                        >
+                          <RiFullscreenLine className="fill-white" />
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          title="Full Screen Exit"
+                          className="border-none size-8"
+                          onClick={handleChangeMode}
+                        >
+                          <RiFullscreenExitLine className="fill-white" />
+                        </Button>
+                      )}
+                      <Button
+                        asChild
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        title="Edit image"
+                        className="border-none size-8 cursor-pointer"
+                      >
+                        <label
+                          tabIndex="0"
+                          htmlFor="image"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              document.getElementById("image").click();
+                            }
+                          }}
+                        >
+                          <RiEditBoxLine className="fill-white" />
+                          <input
+                            id="image"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            hidden
+                          />
+                        </label>
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        title="Delete Image"
+                        onClick={handleRemoveImage}
+                        className="border-none size-8"
+                      >
+                        <RiDeleteBinLine className="fill-white" />
+                      </Button>
+                    </div>
+                    <img
+                      className="w-full aspect-video object-cover rounded-md"
+                      src={image.src}
+                      alt={image.alt}
+                    />
                   </div>
-                  <img
-                    className="w-full aspect-video object-cover"
-                    src={image}
-                    alt=""
-                  />
                 </div>
               )}
-              <div className="flex flex-col gap-1 self-stretch pb-6 md:pb-0">
+              <div className="flex flex-col gap-1 self-stretch pb-6 md:pb-0 px-6 md:px-16">
                 <YooptaTextEditor
                   handleCharCount={handleCharCount}
                   onChange={(value) =>
