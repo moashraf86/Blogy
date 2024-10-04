@@ -1,3 +1,5 @@
+import { calcContentChars } from "./calcContentChars";
+
 /**
  * Validates the title field.
  * @param {string} title - The title to be validated.
@@ -5,13 +7,43 @@
  */
 export const validateTitle = (title) => {
   // min 3 chars, max 60 chars al
-  const regExp = /^.{10,60}$/;
+  const minChars = 10;
+  const maxChars = 100;
   if (!title) {
     return { hasError: true, message: "Title is required" };
-  } else if (!regExp.test(title)) {
+  } else if (title.length < minChars) {
     return {
       hasError: true,
-      message: "Title must be between 10 and 60 characters",
+      message: "Title must be at least 10 characters",
+    };
+  } else if (title.length > maxChars) {
+    return {
+      hasError: true,
+      message: "Title must be at most 100 characters",
+    };
+  }
+  return { hasError: false };
+};
+
+/**
+ * Validates the description field.
+ * @param {string} description - The description to be validated.
+ * @returns {string|boolean} - Returns an error message if validation fails, or true if the description is valid.
+ */
+export const validateDescription = (description) => {
+  const minChars = 50;
+  const maxChars = 100;
+  if (!description) {
+    return { hasError: true, message: "Description is required" };
+  } else if (description.length < minChars) {
+    return {
+      hasError: true,
+      message: "Description must be at least 50 characters",
+    };
+  } else if (description.length > maxChars) {
+    return {
+      hasError: true,
+      message: "Description must be at most 100 characters",
     };
   }
   return { hasError: false };
@@ -23,13 +55,20 @@ export const validateTitle = (title) => {
  * @returns {string|boolean} - Returns an error message if validation fails, or true if the content is valid.
  */
 export const validateContent = (content) => {
-  const regExp = /^.{1000,10000}$/;
-  if (!content) {
+  const totalChars = calcContentChars(content);
+  const minChars = 200;
+  const maxChars = 10000;
+  if (!totalChars || totalChars.trim() === "") {
     return { hasError: true, message: "Content is required" };
-  } else if (!regExp.test(content)) {
+  } else if (totalChars.length < minChars) {
     return {
       hasError: true,
-      message: "Content must be between 1000 and 10000 characters",
+      message: "Content must be at least 200 characters",
+    };
+  } else if (totalChars.length > maxChars) {
+    return {
+      hasError: true,
+      message: "Content must be at most 10000 characters",
     };
   }
   return { hasError: false };
@@ -70,21 +109,22 @@ export const validateImage = (image, isImageRequired) => {
  */
 export const validateForm = ({
   title,
+  description,
   content,
   tag,
   image,
   isImageRequired,
   setErrors,
 }) => {
-  let validationErrors = {};
-  validationErrors.title = validateTitle(title);
-  validationErrors.content = validateContent(content);
-  validationErrors.tag = validateTag(tag);
-  validationErrors.image = validateImage(image, isImageRequired);
+  let validationErrors = {
+    title: validateTitle(title),
+    description: validateDescription(description),
+    content: validateContent(content),
+    tag: validateTag(tag),
+    image: validateImage(image, isImageRequired),
+  };
   setErrors(validationErrors);
-  return Object.values(validationErrors).every(
-    (error) => error.hasError === false
-  );
+  return Object.values(validationErrors).every((error) => !error.hasError);
 };
 
 /**
