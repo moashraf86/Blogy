@@ -1,8 +1,17 @@
-import MDEditor from "@uiw/react-md-editor";
-
 /* eslint-disable react/prop-types */
+import RichEditor from "./YooptaEditor";
+import { useMemo } from "react";
+import { createYooptaEditor } from "@yoopta/editor";
+
 export const PostBody = ({ post }) => {
+  // destructure post object to get image, title, and content
   const { image, title, content } = post;
+  // convert content from string to normal object
+  const contentParsed = JSON.parse(content);
+
+  // create a ne editor
+  const editor = useMemo(() => createYooptaEditor, []);
+
   return (
     <>
       {/* Post Image */}
@@ -13,12 +22,7 @@ export const PostBody = ({ post }) => {
       </div>
       {/* Post Content */}
       <div className="flex flex-col gap-2">
-        {
-          <MDEditor.Markdown
-            source={content}
-            className="blog-content bg-transparent text-primary text-lg"
-          />
-        }
+        <RichEditor editor={editor} defaultValue={contentParsed} readOnly />
       </div>
     </>
   );
