@@ -6,6 +6,7 @@ import { handleFormChange } from "../utils/handleFormChange";
 import { createPost } from "../services/createPost";
 import { Form } from "../components/layout/Form";
 import { handleUploadImage } from "../utils/handleUploadImage";
+import { EditorInitialValue } from "../utils/editorInitialValue";
 
 export const CreatePost = () => {
   const { currentUser } = useContext(AuthContext);
@@ -14,14 +15,25 @@ export const CreatePost = () => {
   const authorImage = currentUser?.photoURL;
   const isGuest = currentUser?.isGuest;
   const navigate = useNavigate();
-  const [image, setImage] = useState(null);
-  const [isImageRequired, setIsImageRequired] = useState(true);
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    content: {},
-    tag: "",
+  const [image, setImage] = useState({
+    src: null,
+    alt: "",
+    isInset: true,
   });
+  const [isImageRequired, setIsImageRequired] = useState(true);
+  const formDataFromLocalStorage = JSON.parse(localStorage.getItem("formData"));
+  const { localTitle, localDescription, localContent, localTag } =
+    formDataFromLocalStorage || {};
+
+  const [formData, setFormData] = useState(
+    formDataFromLocalStorage || {
+      title: localTitle || "",
+      description: localDescription || "",
+      content: localContent || EditorInitialValue,
+      tag: localTag || "",
+    }
+  );
+
   const { title, description, content, tag } = formData;
   const [errors, setErrors] = useState({
     title: {},
@@ -57,6 +69,8 @@ export const CreatePost = () => {
    */
   const handleChange = (e) => {
     handleFormChange(e, formData, setFormData, isSubmitted, errors, setErrors);
+    // store formData in localStorage
+    localStorage.setItem("formData", JSON.stringify(formData));
   };
 
   /**
@@ -77,7 +91,7 @@ export const CreatePost = () => {
    * Remove the selected image
    */
   const handleRemoveImage = () => {
-    setImage(null);
+    setImage({ src: null, isInset: true });
   };
 
   /**
@@ -106,6 +120,7 @@ export const CreatePost = () => {
     // Create a new post with the form data
     createPost({
       title,
+      description,
       content: JSON.stringify(content),
       tag,
       image,
@@ -115,8 +130,12 @@ export const CreatePost = () => {
       isGuest,
     });
 
-    setImage(null); // Reset the image state
-
+    setImage({
+      src: null,
+      alt: "",
+      isInset: true,
+    }); // Reset the image state
+    localStorage.removeItem("formData"); // Remove formData from localStorage
     // Redirect to the home page after creating the post
     setTimeout(() => {
       // Navigate to the home page if user is not a guest
