@@ -31,14 +31,14 @@ export const validateTitle = (title) => {
  * @returns {string|boolean} - Returns an error message if validation fails, or true if the description is valid.
  */
 export const validateDescription = (description) => {
-  const minChars = 50;
+  const minChars = 10;
   const maxChars = 100;
   if (!description) {
     return { hasError: true, message: "Description is required" };
   } else if (description.length < minChars) {
     return {
       hasError: true,
-      message: "Description must be at least 50 characters",
+      message: "Description must be at least 10 characters",
     };
   } else if (description.length > maxChars) {
     return {
