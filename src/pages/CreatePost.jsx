@@ -1,13 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import {
-  validateTitle,
-  validateContent,
-  validateTag,
-  validateForm,
-} from "../utils/validateForm";
-import { markdownToPlainText } from "../utils/markdownToPlainText";
+import { validateForm } from "../utils/validateForm";
 import { handleFormChange } from "../utils/handleFormChange";
 import { createPost } from "../services/createPost";
 import { Form } from "../components/layout/Form";
@@ -24,17 +18,20 @@ export const CreatePost = () => {
   const [isImageRequired, setIsImageRequired] = useState(true);
   const [formData, setFormData] = useState({
     title: "",
-    content: "",
+    description: "",
+    content: {},
     tag: "",
   });
-  const { title, content, tag } = formData;
+  const { title, description, content, tag } = formData;
   const [errors, setErrors] = useState({
     title: {},
+    description: {},
     content: {},
     tag: {},
     image: {},
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+
   const [redirectTime, setRedirectTime] = useState(5);
 
   /**
@@ -54,28 +51,12 @@ export const CreatePost = () => {
       return () => clearInterval(intervalId);
     }
   }, [currentUser]);
-  /**
-   * Convert Markdown to Plain Text
-   * @returns {String} - Plain text content
-   */
-  const plainTextContent = markdownToPlainText(content || "");
 
   /**
    * Handle Inputs Change
    */
   const handleChange = (e) => {
-    handleFormChange(
-      e,
-      formData,
-      setFormData,
-      isSubmitted,
-      errors,
-      setErrors,
-      validateTitle,
-      validateContent,
-      validateTag,
-      markdownToPlainText
-    );
+    handleFormChange(e, formData, setFormData, isSubmitted, errors, setErrors);
   };
 
   /**
@@ -105,7 +86,6 @@ export const CreatePost = () => {
   const handleCreatePost = (e) => {
     e.preventDefault(); // Prevent default form submission
     setIsSubmitted(true); // Set form submission status
-
     /**
      * Validate Form Inputs
      * @returns {Boolean} - True if all inputs are valid
@@ -113,7 +93,8 @@ export const CreatePost = () => {
     if (
       !validateForm({
         title,
-        content: plainTextContent,
+        description,
+        content,
         tag,
         image,
         isImageRequired,
@@ -125,7 +106,7 @@ export const CreatePost = () => {
     // Create a new post with the form data
     createPost({
       title,
-      content,
+      content: JSON.stringify(content),
       tag,
       image,
       authorId,
@@ -148,6 +129,7 @@ export const CreatePost = () => {
   return (
     <Form
       title={title}
+      description={description}
       content={content}
       image={image}
       tag={tag}
