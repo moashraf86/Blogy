@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { Comments } from "../components/layout/Comments";
-import { SignlePost } from "../components/layout/SinglePost";
+import { SinglePost } from "../components/layout/SinglePost";
 import { Skeleton } from "../components/ui/skeleton";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { RiErrorWarningLine } from "@remixicon/react";
@@ -50,8 +50,8 @@ export const Post = () => {
       )}
       {post && (
         <div className={`flex w-full mb-6 sm:mb-4`}>
-          <div className="relative flex flex-col  px-4 border-zinc-800 w-full rounded-md">
-            <SignlePost post={post} comments={comments} />
+          <div className="relative flex flex-col border-zinc-800 w-full rounded-md">
+            <SinglePost post={post} comments={comments} />
             <Comments post={post} />
           </div>
         </div>

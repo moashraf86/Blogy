@@ -2,7 +2,7 @@
 import { PostHead } from "./PostHead";
 import { PostBody } from "./PostBody";
 import { PostFooter } from "./PostFooter";
-export const SignlePost = ({ post, comments }) => {
+export const SinglePost = ({ post, comments }) => {
   return (
     <>
       <PostHead post={post} />
