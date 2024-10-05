@@ -12,6 +12,7 @@ import { NotFound } from "./pages/NotFound.jsx";
 import "remixicon/fonts/remixicon.css";
 import App from "./App.jsx";
 import "./index.css";
+import { fetchPost } from "./services/fetchPost.js";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -30,6 +31,14 @@ const router = createBrowserRouter([
       {
         path: "/edit/:id",
         element: <EditPost />,
+        loader: async ({ params }) => {
+          const postId = params.id;
+          const post = await fetchPost(postId);
+          if (!post) {
+            return { status: 404 };
+          }
+          return { post };
+        },
       },
       {
         path: "/bookmarks",

@@ -97,7 +97,7 @@ export const Form = ({
   useEffect(() => {
     autoResize(titleRef);
     autoResize(descriptionRef);
-  }, []);
+  }, [title, description]);
   return (
     <>
       {/* If user is a guest, show a message to log in with Google to publish posts */}
@@ -346,10 +346,6 @@ export const Form = ({
                       className="w-full aspect-video object-cover rounded-md"
                       src={image.src}
                       alt={image.alt}
-                      onError={(e) => {
-                        e.target.src = "https://via.placeholder.com/800x400";
-                        e.target.alt = "Post image not found";
-                      }}
                     />
                   </div>
                 </div>
