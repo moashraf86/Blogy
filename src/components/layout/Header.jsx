@@ -15,6 +15,7 @@ export default function Header() {
   const [scrollDirection, setScrollDirection] = useState(null);
   const [lastScrollY, setLastScrollY] = useState(0);
   const { pathname } = useLocation();
+
   /**
    * Handle scroll event
    * - add sticky class to header on scroll up and remove on scroll down
@@ -55,9 +56,6 @@ export default function Header() {
               to="/"
               className="text-2xl font-semibold text-zinc-50 flex items-center gap-3"
             >
-              {/* <span className="bg-gradient-to-t from-zinc-950 to-zinc-700 text-zinc-50 text-primary w-10 h-10 rounded-full flex items-center justify-center">
-                <RiEditLine size={18} className="fill-current" />
-              </span> */}
               <h1 className="text-2xl font-normal text-zinc-950 dark:text-zinc-50 font-Monofett">
                 Blogify
               </h1>
@@ -65,33 +63,35 @@ export default function Header() {
           </div>
           <nav>
             <ul className="flex gap-2 items-center">
-              {pathname !== "/create" && currentUser && (
-                <li>
-                  <Link
-                    className={
-                      buttonVariants({ variant: "default", size: "lg" }) +
-                      " " +
-                      "hidden sm:flex gap-1"
-                    }
-                    to="/create"
-                    aria-label="Write a post"
-                  >
-                    <RiEditLine size={18} className="fill-current" />
-                    <span>Write</span>
-                  </Link>
-                  <Link
-                    className={
-                      buttonVariants({ variant: "ghost", size: "icon" }) +
-                      " " +
-                      "sm:hidden"
-                    }
-                    to="/create"
-                    aria-label="Write a post"
-                  >
-                    <RiEditLine size={18} className="fill-current" />
-                  </Link>
-                </li>
-              )}
+              {pathname !== "/create" &&
+                !pathname.startsWith("/edit") &&
+                currentUser && (
+                  <li>
+                    <Link
+                      className={
+                        buttonVariants({ variant: "default", size: "lg" }) +
+                        " " +
+                        "hidden sm:flex gap-1"
+                      }
+                      to="/create"
+                      aria-label="Write a post"
+                    >
+                      <RiEditLine size={18} className="fill-current" />
+                      <span>Write</span>
+                    </Link>
+                    <Link
+                      className={
+                        buttonVariants({ variant: "ghost", size: "icon" }) +
+                        " " +
+                        "sm:hidden"
+                      }
+                      to="/create"
+                      aria-label="Write a post"
+                    >
+                      <RiEditLine size={18} className="fill-current" />
+                    </Link>
+                  </li>
+                )}
               <li>
                 <ModeToggle />
               </li>
