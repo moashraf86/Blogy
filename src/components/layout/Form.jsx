@@ -22,11 +22,11 @@ export const Form = ({
   title,
   description,
   content,
-  image,
   tag,
+  image,
+  submitLabel,
   onsubmit,
   onSelect,
-  handleImageChange,
   handleRemoveImage,
   handleToggleImageMode,
   handleChange,
@@ -158,7 +158,7 @@ export const Form = ({
                         }`}
                       >
                         <label
-                          htmlFor="image"
+                          htmlFor="addImage"
                           tabIndex="0"
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
@@ -177,10 +177,21 @@ export const Form = ({
                           />
                           Add Cover
                           <input
-                            id="image"
+                            id="addImage"
                             type="file"
                             accept="image/*"
-                            onChange={handleImageChange}
+                            onChange={(e) =>
+                              handleChange({
+                                target: {
+                                  name: "image",
+                                  value: {
+                                    src: e.target.files[0],
+                                    alt: e.target.files[0].name,
+                                    isInset: true,
+                                  },
+                                },
+                              })
+                            }
                             hidden
                           />
                         </label>
@@ -212,14 +223,14 @@ export const Form = ({
                   </div>
                 </div>
                 {/* Publish Button */}
-                <div className="fixed bottom-0 left-0 right-0 bg-background z-20 py-3 px-6 border-t border-border shadow-sm flex flex-1 justify-end md:static md:p-0 md:border-none md:shadow-none md:bg-none">
+                <div className="fixed bottom-0 left-0 right-0 bg-background z-20 py-3 px-6 border-t border-border shadow-sm flex flex-1 justify-end md:static md:p-0 md:border-none md:shadow-none md:bg-none md:z-0">
                   <Button
                     size="lg"
                     type="submit"
                     className="disabled:opacity-20"
                     disabled={notReadyForSubmit}
                   >
-                    {isGuest ? "Save to Drafts" : "Publish"}
+                    {isGuest ? "Save to Drafts" : submitLabel}
                   </Button>
                 </div>
               </div>
@@ -313,7 +324,7 @@ export const Form = ({
                       >
                         <label
                           tabIndex="0"
-                          htmlFor="image"
+                          htmlFor="changeImage"
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
                               e.preventDefault();
@@ -323,10 +334,21 @@ export const Form = ({
                         >
                           <RiEditBoxLine className="fill-white" />
                           <input
-                            id="image"
+                            id="changeImage"
                             type="file"
                             accept="image/*"
-                            onChange={handleImageChange}
+                            onChange={(e) =>
+                              handleChange({
+                                target: {
+                                  name: "image",
+                                  value: {
+                                    src: e.target.files[0],
+                                    alt: e.target.files[0].name,
+                                    isInset: true,
+                                  },
+                                },
+                              })
+                            }
                             hidden
                           />
                         </label>
@@ -347,7 +369,11 @@ export const Form = ({
                       src={image.src}
                       alt={image.alt}
                     />
+                    {/* error */}
                   </div>
+                  {imageError.hasError && (
+                    <p className="text-sm text-danger">{imageError.message}</p>
+                  )}
                 </div>
               )}
               <div className="flex flex-col gap-1 self-stretch pb-6 md:pb-0 px-6 md:px-16">

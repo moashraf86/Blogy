@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLoaderData } from "react-router-dom";
 import { validateForm } from "../utils/validateForm";
 import { Form } from "../components/layout/Form";
 import { editPost } from "../services/editPost";
 import { handleFormChange } from "../utils/handleFormChange";
-import { handleUploadImage } from "../utils/handleUploadImage";
 export const EditPost = () => {
   // Retrieve post ID from URL parameters
   const { id } = useParams();
@@ -19,12 +18,6 @@ export const EditPost = () => {
    */
   const { post } = useLoaderData();
 
-  const [image, setImage] = useState({
-    src: post?.image.src || null,
-    alt: post?.image.alt || "",
-    isInset: post?.image.isInset || true,
-  });
-
   const [isImageRequired, setIsImageRequired] = useState(true);
 
   const [formData, setFormData] = useState({
@@ -32,9 +25,14 @@ export const EditPost = () => {
     description: post?.description || "",
     content: post ? JSON.parse(post.content) : {},
     tag: post?.tag || "",
+    image: post?.image || {
+      src: null,
+      alt: "",
+      isInset: true,
+    },
   });
 
-  const { title, description, content, tag } = formData;
+  const { title, description, content, tag, image } = formData;
 
   const [errors, setErrors] = useState({
     title: {},
@@ -47,31 +45,41 @@ export const EditPost = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   /**
+   * Remove form data from local storage on component unmount
+   * - This ensures that the form data is not persisted across sessions
+   */
+  useEffect(() => {
+    return () => {
+      localStorage.removeItem("formData");
+    };
+  }, []);
+  /**
    * Handle input field changes
    */
   const handleChange = (e) => {
-    handleFormChange(e, formData, setFormData, isSubmitted, errors, setErrors);
-  };
-
-  /**
-   * Handle image change
-   */
-  const handleImageChange = (e) => {
-    handleUploadImage({
+    handleFormChange(
       e,
-      setImage,
-      errors,
-      setErrors,
-      image,
+      formData,
+      setFormData,
+      isSubmitted,
       isImageRequired,
-    });
+      errors,
+      setErrors
+    );
   };
 
   /**
    * Handle removal of the selected image
    */
   const handleRemoveImage = () => {
-    setImage({ src: null, alt: "", isInset: true });
+    setFormData({
+      ...formData,
+      image: {
+        src: null,
+        alt: "",
+        isInset: true,
+      },
+    });
   };
 
   /**
@@ -79,7 +87,13 @@ export const EditPost = () => {
    * @param {Boolean} isInset - True if image is inset
    */
   const handleToggleImageMode = () => {
-    setImage((prevImage) => ({ ...prevImage, isInset: !prevImage.isInset }));
+    setFormData({
+      ...formData,
+      image: {
+        ...formData.image,
+        isInset: !formData.image,
+      },
+    });
   };
 
   /**
@@ -116,6 +130,9 @@ export const EditPost = () => {
       image,
     });
 
+    // Clear form data from local storage
+    localStorage.removeItem("formData");
+
     // Navigate to the home page after a short delay
     setTimeout(() => {
       navigate("/");
@@ -124,15 +141,14 @@ export const EditPost = () => {
 
   return (
     <Form
-      heading="Edit Post"
       title={title}
       description={description}
       content={content}
       tag={tag}
       image={image}
+      submitLabel={"Update"}
       onsubmit={handleEditPost}
       onSelect={(e) => handleChange(e)}
-      handleImageChange={handleImageChange}
       handleRemoveImage={handleRemoveImage}
       handleToggleImageMode={handleToggleImageMode}
       handleChange={handleChange}

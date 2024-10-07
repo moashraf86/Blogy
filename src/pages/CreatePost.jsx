@@ -5,7 +5,6 @@ import { validateForm } from "../utils/validateForm";
 import { handleFormChange } from "../utils/handleFormChange";
 import { createPost } from "../services/createPost";
 import { Form } from "../components/layout/Form";
-import { handleUploadImage } from "../utils/handleUploadImage";
 import { EditorInitialValue } from "../utils/editorInitialValue";
 
 export const CreatePost = () => {
@@ -15,14 +14,9 @@ export const CreatePost = () => {
   const authorImage = currentUser?.photoURL;
   const isGuest = currentUser?.isGuest;
   const navigate = useNavigate();
-  const [image, setImage] = useState({
-    src: null,
-    alt: "",
-    isInset: true,
-  });
   const [isImageRequired, setIsImageRequired] = useState(true);
   const formDataFromLocalStorage = JSON.parse(localStorage.getItem("formData"));
-  const { localTitle, localDescription, localContent, localTag } =
+  const { localTitle, localDescription, localContent, localTag, localImage } =
     formDataFromLocalStorage || {};
 
   const [formData, setFormData] = useState(
@@ -31,10 +25,15 @@ export const CreatePost = () => {
       description: localDescription || "",
       content: localContent || EditorInitialValue,
       tag: localTag || "",
+      image: localImage || {
+        src: null,
+        alt: "",
+        isInset: true,
+      },
     }
   );
 
-  const { title, description, content, tag } = formData;
+  const { title, description, content, tag, image } = formData;
   const [errors, setErrors] = useState({
     title: {},
     description: {},
@@ -68,38 +67,42 @@ export const CreatePost = () => {
    * Handle Inputs Change
    */
   const handleChange = (e) => {
-    handleFormChange(e, formData, setFormData, isSubmitted, errors, setErrors);
-    // store formData in localStorage
-    localStorage.setItem("formData", JSON.stringify(formData));
-  };
-
-  /**
-   * Handle Image Change
-   */
-  const handleImageChange = (e) => {
-    handleUploadImage({
+    handleFormChange(
       e,
-      setImage,
-      errors,
-      setErrors,
-      image,
+      formData,
+      setFormData,
+      isSubmitted,
       isImageRequired,
-    });
+      errors,
+      setErrors
+    );
   };
 
   /**
    * Remove the selected image
    */
   const handleRemoveImage = () => {
-    setImage({ src: null, alt: "", isInset: true });
+    setFormData({
+      ...formData,
+      image: {
+        src: null,
+        alt: "",
+        isInset: true,
+      },
+    });
   };
 
   /**
    * Handle Toggle Image Mode
-   * @param {Boolean} isInset - True if image is inset
    */
   const handleToggleImageMode = () => {
-    setImage((prevImage) => ({ ...prevImage, isInset: !prevImage.isInset }));
+    setFormData({
+      ...formData,
+      image: {
+        ...formData.image,
+        isInset: !formData.image.isInset,
+      },
+    });
   };
 
   /**
@@ -154,11 +157,12 @@ export const CreatePost = () => {
       title={title}
       description={description}
       content={content}
-      image={image}
       tag={tag}
+      image={image}
+      submitLabel={"Publish"}
       onsubmit={handleCreatePost}
       onSelect={(e) => handleChange(e)}
-      handleImageChange={handleImageChange}
+      // handleImageChange={handleImageChange}
       handleRemoveImage={handleRemoveImage}
       handleToggleImageMode={handleToggleImageMode}
       handleChange={handleChange}
