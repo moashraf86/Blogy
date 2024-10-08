@@ -129,13 +129,13 @@ export const Form = ({
         </div>
       ) : null}
       {currentUser ? (
-        <div className="flex justify-center items-center max-w-4xl mx-auto">
+        <div className="flex justify-center items-center max-w-7xl mx-auto">
           <div className="flex flex-col w-full bg-background rounded-md py-6 gap-4 mt-6">
             <form
               onSubmit={onsubmit}
-              className="flex flex-col gap-4 items-start"
+              className="flex flex-col gap-4 items-center"
             >
-              <div className="flex flex-col items-start sm:flex-row sm:items-center gap-3 w-full px-6 md:px-16">
+              <div className="flex flex-col items-start sm:flex-row sm:items-center gap-3 w-full px-6 md:px-16 max-w-4xl">
                 <div className="flex flex-col gap-1">
                   <ComboboxDemo
                     onSelect={onSelect}
@@ -235,7 +235,7 @@ export const Form = ({
                 </div>
               </div>
               {/* Post Title */}
-              <div className="flex flex-col gap-1 self-stretch px-6 md:px-16">
+              <div className="flex flex-col gap-1 w-full px-6 md:px-16 max-w-4xl">
                 <textarea
                   ref={titleRef}
                   name="title"
@@ -257,7 +257,7 @@ export const Form = ({
                 )}
               </div>
               {/* Post Description */}
-              <div className="flex flex-col gap-1 self-stretch px-6 md:px-16">
+              <div className="flex flex-col gap-1 w-full px-6 md:px-16 max-w-4xl">
                 <textarea
                   ref={descriptionRef}
                   name="description"
@@ -284,8 +284,8 @@ export const Form = ({
               {/* Display the image */}
               {image.src && (
                 <div
-                  className={`relative overflow-clip self-stretch ${
-                    image.isInset ? "px-6 md:px-16" : "px-6 lg:px-0"
+                  className={`px-6 md:px-16 relative overflow-clip w-full ${
+                    image.isInset ? "max-w-4xl" : "max-w-7xl"
                   }`}
                 >
                   <div className="relative after:absolute after:content-[''] after:inset-0 after:bg-black/50 after:rounded-md after:z-1 after:hidden hover:after:block group">
@@ -376,7 +376,7 @@ export const Form = ({
                   )}
                 </div>
               )}
-              <div className="flex flex-col gap-1 self-stretch pb-6 md:pb-0 px-6 md:px-16">
+              <div className="flex flex-col gap-1 w-full pb-6 md:pb-0 px-6 md:px-16 max-w-4xl">
                 <YooptaTextEditor
                   handleCharCount={handleCharCount}
                   onChange={(value) =>

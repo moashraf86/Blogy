@@ -24,7 +24,7 @@ export const Post = () => {
   const { data: comments } = useFetchComments(id);
 
   return (
-    <div className="max-w-4xl mx-auto mt-8">
+    <div className="max-w-7xl mx-auto mt-8">
       {isPending && (
         <div className="flex flex-col gap-4 rounded-md p-4">
           <Skeleton className="w-20 h-8 rounded-full" />

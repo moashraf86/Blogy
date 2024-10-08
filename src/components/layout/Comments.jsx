@@ -122,7 +122,7 @@ export const Comments = ({ post }) => {
   };
 
   return (
-    <div className="px-6 md:px-10">
+    <div className="w-full max-w-4xl mx-auto px-6 md:px-10">
       <CommentForm
         content={comment}
         post={post}

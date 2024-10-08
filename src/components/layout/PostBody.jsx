@@ -17,18 +17,14 @@ export const PostBody = ({ post }) => {
       {/* Post Image */}
       {image && (
         <div
-          className={`w-full mb-6 rounded-xl overflow-clip ${
-            image.isInset
-              ? "px-6 md:px-10"
-              : "px-6 md:px-0 md:rounded-none lg:rounded-xl"
+          className={`w-full mx-auto mb-6 rounded-xl overflow-clip px-6 md:px-10 ${
+            image.isInset ? "max-w-4xl" : "max-w-7xl lg:rounded-xl"
           }`}
         >
           <img
             src={image.src}
             alt={image.alt}
-            className={`relative w-full aspect-video object-cover rounded-xl ${
-              image.isInset ? "md:rounded-2xl" : "md:rounded-none lg:rounded-xl"
-            }`}
+            className="relative w-full aspect-video object-cover rounded-xl"
             onError={(e) => {
               e.target.src = "https://via.placeholder.com/800x450";
               e.target.alt = "Image not found";
@@ -38,7 +34,7 @@ export const PostBody = ({ post }) => {
       )}
 
       {/* Post Content */}
-      <div className="flex flex-col gap-2 px-6 md:px-10">
+      <div className="flex flex-col gap-2 w-full max-w-4xl mx-auto px-6 md:px-10">
         <RichEditor editor={editor} defaultValue={contentParsed} readOnly />
       </div>
     </>

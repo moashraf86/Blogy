@@ -4,7 +4,7 @@ export const PostHead = ({ post }) => {
   const { tag, id, title } = post;
 
   return (
-    <div className="px-6 md:px-10">
+    <div className="px-6 md:px-10 w-full max-w-4xl mx-auto">
       {/* Post Tag */}
       {tag && (
         <div className="flex justify-between items-center mb-3">
