@@ -6,8 +6,8 @@ export const SinglePost = ({ post, comments }) => {
   return (
     <>
       <PostHead post={post} />
-      <PostBody post={post} />
       <PostFooter post={post} comments={comments} />
+      <PostBody post={post} />
     </>
   );
 };
