@@ -4,7 +4,7 @@ export const PostHead = ({ post }) => {
   const { tag, id, title } = post;
 
   return (
-    <>
+    <div className="px-6 md:px-10 w-full max-w-4xl mx-auto">
       {/* Post Tag */}
       {tag && (
         <div className="flex justify-between items-center mb-3">
@@ -17,6 +17,10 @@ export const PostHead = ({ post }) => {
       <h3 className="text-2xl md:text-4xl text-primary font-bold capitalize mb-6">
         <Link to={`/post/${id}`}>{title}</Link>
       </h3>
-    </>
+      {/* Post Description */}
+      {post.description && (
+        <p className="text-lg text-muted-foreground mb-6">{post.description}</p>
+      )}
+    </div>
   );
 };

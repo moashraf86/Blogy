@@ -81,6 +81,10 @@
   * {
     @apply border-border;
   }
+  ::selection {
+    @apply bg-primary text-primary-foreground px-1;
+  }
+
   html {
     @apply antialiased font-inter;
   }
@@ -252,4 +256,192 @@
       @apply font-bold;
     }
   }
+}
+
+/* Yoopta Editor */
+.yoopta-editor * {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted)) hsl(var(--background));
+}
+
+.yoopta-paragraph,
+.yoopta-placeholder:after {
+  @apply text-lg;
+}
+
+.yoopta-placeholder:after {
+  @apply text-muted-foreground;
+}
+
+.yoopta-block-actions-plus,
+.yoopta-block-actions-drag {
+  @apply text-primary/50;
+}
+
+.yoopta-block-options-menu-content {
+  @apply bg-card text-card-foreground border border-border rounded-md;
+}
+
+.yoopta-block-options-item button:hover,
+.yoopta-block-options-item label:hover {
+  @apply bg-muted text-primary;
+}
+
+.yoopta-toolbar-root {
+  @apply bg-card border-border rounded-md overflow-auto h-auto;
+}
+
+.yoopta-toolbar-item:hover,
+.yoopta-toolbar-item-mark:hover {
+  @apply bg-muted text-primary;
+}
+
+.yoopta-toolbar-item[data-state="on"],
+.yoopta-toolbar-item-mark[data-state="on"] {
+  @apply bg-muted text-primary !important;
+}
+
+.yoopta-extended-block-actions {
+  @apply bg-muted text-card-foreground border border-border rounded-sm;
+}
+
+.yoo-toolbar-bg-\[\#FFFFFF\] {
+  background-color: hsl(var(--background)) !important;
+  @apply border-border;
+}
+.yoo-toolbar-bg-\[\#FFFFFF\] .yoopta-button {
+  @apply border-primary/10 !important;
+}
+
+/* Code */
+.yoopta-mark-code {
+  @apply bg-muted text-primary;
+}
+
+/* Action Menu */
+.yoopta-action-menu-list-content {
+  @apply bg-card text-card-foreground border border-border rounded-md shadow-none;
+}
+
+.aria-selected\:yoo-action-menu-bg-\[\#f0f0f0\]:hover,
+.aria-selected\:yoo-action-menu-bg-\[\#f0f0f0\][aria-selected="true"] {
+  @apply bg-muted text-primary;
+}
+
+.aria-selected\:yoo-action-menu-bg-\[\#f0f0f0\]
+  .yoo-action-menu-bg-\[\#FFFFFF\] {
+  @apply bg-background border-border text-foreground;
+}
+
+.yoopta-toolbar-separator {
+  @apply bg-muted;
+}
+
+/* BlockQuote */
+.yoopta-blockquote {
+  @apply border-l-border italic;
+}
+
+/* Divider */
+.yoopta-divider-solid {
+  @apply border-0 h-[2px] bg-border !important;
+}
+
+.yoopta-divider-dashed {
+  @apply border-border border-dashed border-b !important;
+}
+
+.yoopta-divider-dotted div {
+  @apply bg-border max-w-1 max-h-1 min-w-1 min-h-1 !important;
+}
+
+.yoopta-divider .yoopta-divider-options {
+  @apply text-primary;
+}
+
+/* BLock Code */
+.yoopta-code-cm-editor .cm-editor {
+  @apply border border-border rounded-md;
+}
+
+#yoo-select-content {
+  @apply bg-card border border-border rounded-md text-primary;
+}
+
+#yoo-select-content .yoo-code-p-1 span {
+  @apply text-primary;
+}
+
+/* Image */
+.yoopta-image > div {
+  @apply max-w-full !important;
+}
+
+.yoo-image-bg-\[\#efefef\] {
+  @apply bg-background border border-solid border-input shadow-sm rounded-lg text-foreground;
+}
+
+.yoo-image-bg-\[\#efefef\]:hover {
+  @apply bg-muted text-primary;
+}
+
+.yoo-image-bg-\[\#FFFFFF\] {
+  @apply bg-background border border-solid border-border shadow-sm rounded-lg text-primary;
+}
+
+.yoopta-button.yoo-image-text-\[rgb\(55\,53\,47\)\] {
+  @apply text-primary !important;
+}
+
+div:not(.yoopta-block-options-item):has(> label #image-uploader) {
+  @apply bg-card border border-dashed border-border rounded-md text-primary py-3 mb-[6px] h-auto;
+}
+
+label #image-uploader {
+  @apply hidden;
+}
+
+input[placeholder="Paste image link"] {
+  @apply bg-card border border-border rounded-md text-primary py-3 px-4 h-auto;
+}
+
+input[placeholder="Paste image link"] + button {
+  @apply bg-primary w-auto max-w-max h-10 px-6  border border-border rounded-full disabled:bg-muted disabled:shadow-none disabled:text-primary/20 !important;
+}
+
+.yoopta-image-input-root {
+  @apply bg-card border border-border rounded-md text-primary py-3 mb-[6px] h-auto;
+}
+
+.yoopta-image-input-root input#alt {
+  @apply bg-card border border-border rounded-md text-primary py-1.5 h-auto;
+}
+
+div:has(label.yoopta-image-input-label) + div button:first-child {
+  @apply bg-primary text-primary-foreground disabled:bg-muted disabled:shadow-none disabled:text-primary/20;
+}
+
+div:has(label.yoopta-image-input-label) + div button:nth-child(2) {
+  @apply bg-background text-danger;
+}
+
+/* link-tool */
+div:has(.yoopta-link-tool) {
+  @apply z-20;
+}
+
+.yoopta-link-tool {
+  @apply bg-card border border-border rounded-md text-primary;
+}
+
+.yoopta-link-tool-input {
+  @apply bg-card border border-border rounded-md text-primary py-1.5 h-auto;
+}
+
+.yoopta-link-tool div button:not(.yoopta-link-tool-label) {
+  @apply bg-primary text-primary-foreground disabled:bg-muted disabled:shadow-none disabled:text-primary/20;
+}
+
+.yoopta-link-tool div button:not(.yoopta-link-tool-label):last-child {
+  @apply bg-background text-danger disabled:bg-muted disabled:shadow-none disabled:text-primary/20;
 }

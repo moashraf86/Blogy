@@ -1,17 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import {
-  validateTitle,
-  validateContent,
-  validateTag,
-  validateForm,
-} from "../utils/validateForm";
-import { markdownToPlainText } from "../utils/markdownToPlainText";
+import { validateForm } from "../utils/validateForm";
 import { handleFormChange } from "../utils/handleFormChange";
 import { createPost } from "../services/createPost";
 import { Form } from "../components/layout/Form";
-import { handleUploadImage } from "../utils/handleUploadImage";
+import { EditorInitialValue } from "../utils/editorInitialValue";
 
 export const CreatePost = () => {
   const { currentUser } = useContext(AuthContext);
@@ -20,21 +14,35 @@ export const CreatePost = () => {
   const authorImage = currentUser?.photoURL;
   const isGuest = currentUser?.isGuest;
   const navigate = useNavigate();
-  const [image, setImage] = useState(null);
   const [isImageRequired, setIsImageRequired] = useState(true);
-  const [formData, setFormData] = useState({
-    title: "",
-    content: "",
-    tag: "",
-  });
-  const { title, content, tag } = formData;
+  const formDataFromLocalStorage = JSON.parse(localStorage.getItem("formData"));
+  const { localTitle, localDescription, localContent, localTag, localImage } =
+    formDataFromLocalStorage || {};
+
+  const [formData, setFormData] = useState(
+    formDataFromLocalStorage || {
+      title: localTitle || "",
+      description: localDescription || "",
+      content: localContent || EditorInitialValue,
+      tag: localTag || "",
+      image: localImage || {
+        src: null,
+        alt: "",
+        isInset: true,
+      },
+    }
+  );
+
+  const { title, description, content, tag, image } = formData;
   const [errors, setErrors] = useState({
     title: {},
+    description: {},
     content: {},
     tag: {},
     image: {},
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+
   const [redirectTime, setRedirectTime] = useState(5);
 
   /**
@@ -54,11 +62,6 @@ export const CreatePost = () => {
       return () => clearInterval(intervalId);
     }
   }, [currentUser]);
-  /**
-   * Convert Markdown to Plain Text
-   * @returns {String} - Plain text content
-   */
-  const plainTextContent = markdownToPlainText(content || "");
 
   /**
    * Handle Inputs Change
@@ -69,34 +72,37 @@ export const CreatePost = () => {
       formData,
       setFormData,
       isSubmitted,
-      errors,
-      setErrors,
-      validateTitle,
-      validateContent,
-      validateTag,
-      markdownToPlainText
-    );
-  };
-
-  /**
-   * Handle Image Change
-   */
-  const handleImageChange = (e) => {
-    handleUploadImage({
-      e,
-      setImage,
-      errors,
-      setErrors,
-      image,
       isImageRequired,
-    });
+      errors,
+      setErrors
+    );
   };
 
   /**
    * Remove the selected image
    */
   const handleRemoveImage = () => {
-    setImage(null);
+    setFormData({
+      ...formData,
+      image: {
+        src: null,
+        alt: "",
+        isInset: true,
+      },
+    });
+  };
+
+  /**
+   * Handle Toggle Image Mode
+   */
+  const handleToggleImageMode = () => {
+    setFormData({
+      ...formData,
+      image: {
+        ...formData.image,
+        isInset: !formData.image.isInset,
+      },
+    });
   };
 
   /**
@@ -105,7 +111,6 @@ export const CreatePost = () => {
   const handleCreatePost = (e) => {
     e.preventDefault(); // Prevent default form submission
     setIsSubmitted(true); // Set form submission status
-
     /**
      * Validate Form Inputs
      * @returns {Boolean} - True if all inputs are valid
@@ -113,7 +118,8 @@ export const CreatePost = () => {
     if (
       !validateForm({
         title,
-        content: plainTextContent,
+        description,
+        content,
         tag,
         image,
         isImageRequired,
@@ -125,7 +131,8 @@ export const CreatePost = () => {
     // Create a new post with the form data
     createPost({
       title,
-      content,
+      description,
+      content: JSON.stringify(content),
       tag,
       image,
       authorId,
@@ -134,8 +141,8 @@ export const CreatePost = () => {
       isGuest,
     });
 
-    setImage(null); // Reset the image state
-
+    handleRemoveImage; // Remove the selected image
+    localStorage.removeItem("formData"); // Remove formData from localStorage
     // Redirect to the home page after creating the post
     setTimeout(() => {
       // Navigate to the home page if user is not a guest
@@ -148,13 +155,16 @@ export const CreatePost = () => {
   return (
     <Form
       title={title}
+      description={description}
       content={content}
-      image={image}
       tag={tag}
+      image={image}
+      submitLabel={"Publish"}
       onsubmit={handleCreatePost}
       onSelect={(e) => handleChange(e)}
-      handleImageChange={handleImageChange}
+      // handleImageChange={handleImageChange}
       handleRemoveImage={handleRemoveImage}
+      handleToggleImageMode={handleToggleImageMode}
       handleChange={handleChange}
       handleSelectRandomImage={() => setIsImageRequired(!isImageRequired)}
       isImageRequired={isImageRequired}

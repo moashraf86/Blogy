@@ -1,59 +1,58 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import {
-  validateTitle,
-  validateContent,
-  validateTag,
-  validateForm,
-} from "../utils/validateForm";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, useLoaderData } from "react-router-dom";
+import { validateForm } from "../utils/validateForm";
 import { Form } from "../components/layout/Form";
-import { markdownToPlainText } from "../utils/markdownToPlainText";
 import { editPost } from "../services/editPost";
-import { useFetchPost } from "../hooks/useFetchPost";
 import { handleFormChange } from "../utils/handleFormChange";
-import { handleUploadImage } from "../utils/handleUploadImage";
-
 export const EditPost = () => {
-  const { id } = useParams(); // Retrieve post ID from URL parameters
-  const navigate = useNavigate(); // Hook to programmatically navigate
+  // Retrieve post ID from URL parameters
+  const { id } = useParams();
 
-  // Fetch post data using custom hook
-  const { data: post } = useFetchPost(id);
-
-  // Initialize state with default values; updated once post data is available
-  const [image, setImage] = useState(null);
-  const [isImageRequired, setIsImageRequired] = useState(true);
-  const [formData, setFormData] = useState({
-    title: "",
-    content: "",
-    tag: "",
-  });
-  const { title, content, tag } = formData;
-  const [errors, setErrors] = useState({
-    title: "",
-    content: "",
-    tag: "",
-    image: "",
-  });
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  // Update formData state when post data is available
-  useEffect(() => {
-    if (post) {
-      setFormData({
-        title: post.title || "",
-        content: post.content || "",
-        tag: post.tag || "",
-      });
-      setImage(post.image || null);
-    }
-  }, [post]);
+  // Hook to programmatically navigate
+  const navigate = useNavigate();
 
   /**
-   * Convert Markdown to Plain Text
-   * @returns {String} - Plain text content
+   * Prefetch post data using useLoaderData hook from react-router-dom
+   * - The data is fetched using the `loader` function in the route configuration
+   * @returns {Object} post - Post data
    */
-  const plainTextContent = markdownToPlainText(content || "");
+  const { post } = useLoaderData();
 
+  const [isImageRequired, setIsImageRequired] = useState(true);
+
+  const [formData, setFormData] = useState({
+    title: post?.title || "",
+    description: post?.description || "",
+    content: post ? JSON.parse(post.content) : {},
+    tag: post?.tag || "",
+    image: post?.image || {
+      src: null,
+      alt: "",
+      isInset: true,
+    },
+  });
+
+  const { title, description, content, tag, image } = formData;
+
+  const [errors, setErrors] = useState({
+    title: {},
+    description: {},
+    content: {},
+    tag: {},
+    image: {},
+  });
+
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  /**
+   * Remove form data from local storage on component unmount
+   * - This ensures that the form data is not persisted across sessions
+   */
+  useEffect(() => {
+    return () => {
+      localStorage.removeItem("formData");
+    };
+  }, []);
   /**
    * Handle input field changes
    */
@@ -63,34 +62,38 @@ export const EditPost = () => {
       formData,
       setFormData,
       isSubmitted,
-      errors,
-      setErrors,
-      validateTitle,
-      validateContent,
-      validateTag,
-      markdownToPlainText
-    );
-  };
-
-  /**
-   * Handle image change
-   */
-  const handleImageChange = (e) => {
-    handleUploadImage({
-      e,
-      setImage,
-      errors,
-      setErrors,
-      image,
       isImageRequired,
-    });
+      errors,
+      setErrors
+    );
   };
 
   /**
    * Handle removal of the selected image
    */
   const handleRemoveImage = () => {
-    setImage(null);
+    setFormData({
+      ...formData,
+      image: {
+        src: null,
+        alt: "",
+        isInset: true,
+      },
+    });
+  };
+
+  /**
+   * Handle Toggle Image Mode
+   * @param {Boolean} isInset - True if image is inset
+   */
+  const handleToggleImageMode = () => {
+    setFormData((prevData) => ({
+      ...prevData,
+      image: {
+        ...prevData.image,
+        isInset: !prevData.image.isInset,
+      },
+    }));
   };
 
   /**
@@ -107,7 +110,8 @@ export const EditPost = () => {
     if (
       !validateForm({
         title,
-        content: plainTextContent,
+        description,
+        content,
         tag,
         image,
         isImageRequired,
@@ -120,10 +124,14 @@ export const EditPost = () => {
     editPost({
       id,
       title,
-      content,
+      description,
+      content: JSON.stringify(content),
       tag,
       image,
     });
+
+    // Clear form data from local storage
+    localStorage.removeItem("formData");
 
     // Navigate to the home page after a short delay
     setTimeout(() => {
@@ -133,15 +141,16 @@ export const EditPost = () => {
 
   return (
     <Form
-      heading="Edit Post"
       title={title}
+      description={description}
       content={content}
       tag={tag}
       image={image}
+      submitLabel={"Update"}
       onsubmit={handleEditPost}
       onSelect={(e) => handleChange(e)}
-      handleImageChange={handleImageChange}
       handleRemoveImage={handleRemoveImage}
+      handleToggleImageMode={handleToggleImageMode}
       handleChange={handleChange}
       handleSelectRandomImage={() => setIsImageRequired(!isImageRequired)}
       isImageRequired={isImageRequired}
