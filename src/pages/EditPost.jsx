@@ -87,13 +87,13 @@ export const EditPost = () => {
    * @param {Boolean} isInset - True if image is inset
    */
   const handleToggleImageMode = () => {
-    setFormData({
-      ...formData,
+    setFormData((prevData) => ({
+      ...prevData,
       image: {
-        ...formData.image,
-        isInset: !formData.image,
+        ...prevData.image,
+        isInset: !prevData.image.isInset,
       },
-    });
+    }));
   };
 
   /**
