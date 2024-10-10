@@ -18,6 +18,7 @@ import { Button } from "../ui/button";
 import { SignInModal } from "../shared/SignInModal";
 import YooptaTextEditor from "./YooptaEditor";
 import { CharCountDisplay } from "../shared/CharCountDisplay";
+import { AddCoverModal } from "../shared/AddCoverModal";
 export const Form = ({
   title,
   description,
@@ -37,7 +38,8 @@ export const Form = ({
 }) => {
   const { currentUser } = useContext(AuthContext);
   const isGuest = currentUser?.isGuest;
-  const [showModal, setShowModal] = useState(false);
+  const [signInModal, setSignInModal] = useState(false);
+  const [coverModal, setCoverModal] = useState(false);
   const [charsCount, setCharsCount] = useState(0);
   const titleRef = useRef(null);
   const descriptionRef = useRef(null);
@@ -98,6 +100,7 @@ export const Form = ({
     autoResize(titleRef);
     autoResize(descriptionRef);
   }, [title, description]);
+
   return (
     <>
       {/* If user is a guest, show a message to log in with Google to publish posts */}
@@ -116,7 +119,7 @@ export const Form = ({
                 </AlertDescription>
               </div>
             </div>
-            <Button size="lg" onClick={() => setShowModal(true)}>
+            <Button size="lg" onClick={() => setSignInModal(true)}>
               Sign In
             </Button>
             <button
@@ -148,7 +151,8 @@ export const Form = ({
                   <div className="flex flex-row items-center gap-2 flex-wrap">
                     {!image.src && isImageRequired && (
                       <Button
-                        asChild
+                        type="button"
+                        // asChild
                         variant="outline"
                         size="sm"
                         className={`cursor-pointer gap-1 ${
@@ -156,45 +160,9 @@ export const Form = ({
                             ? "border-danger text-danger hover:text-danger hover:bg-danger/10"
                             : ""
                         }`}
+                        onClick={() => setCoverModal(true)}
                       >
-                        <label
-                          htmlFor="addImage"
-                          tabIndex="0"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              document.getElementById("image").click();
-                            }
-                          }}
-                        >
-                          <RiImageFill
-                            size={16}
-                            className={`opacity-70 shrink-0${
-                              imageError.hasError
-                                ? "fill-danger"
-                                : "fill-muted-foreground"
-                            }`}
-                          />
-                          Add Cover
-                          <input
-                            id="addImage"
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) =>
-                              handleChange({
-                                target: {
-                                  name: "image",
-                                  value: {
-                                    src: e.target.files[0],
-                                    alt: e.target.files[0].name,
-                                    isInset: true,
-                                  },
-                                },
-                              })
-                            }
-                            hidden
-                          />
-                        </label>
+                        Add Cover
                       </Button>
                     )}
                     {!image.src && isImageRequired && (
@@ -376,7 +344,7 @@ export const Form = ({
                   )}
                 </div>
               )}
-              <div className="flex flex-col gap-1 w-full pb-6 md:pb-0 px-6 md:px-16 max-w-4xl">
+              <div className="flex flex-col gap-1 w-full pb-6 md:pb-0 pl-16 md:pl-0 px-6 md:px-16 max-w-4xl">
                 <YooptaTextEditor
                   handleCharCount={handleCharCount}
                   onChange={(value) =>
@@ -409,7 +377,16 @@ export const Form = ({
           </Alert>
         </div>
       )}
-      <SignInModal showModal={showModal} onCancel={() => setShowModal(false)} />
+      <SignInModal
+        showModal={signInModal}
+        onCancel={() => setSignInModal(false)}
+      />
+      <AddCoverModal
+        showModal={coverModal}
+        onCancel={() => setCoverModal(false)}
+        handleChange={handleChange}
+        handleSubmitUrl={handleChange}
+      />
     </>
   );
 };
